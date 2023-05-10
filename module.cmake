@@ -43,7 +43,7 @@ macro(CreateTarget ProjectName Type Group)
 
     # 添加 qt 头文件
     if(NOT("${QT_LIBRARY_LIST}" STREQUAL ""))
-        AddQtInc("${QT_LIBRARY_LIST}" "${FORM_FILES}" "${RESOURCE_FILES}")
+        AddQtInc("${QT_LIBRARY_LIST}")
     endif()
 
     # 生成项目

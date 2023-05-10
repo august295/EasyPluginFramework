@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plugins>
+    <Plugin load="1" name="Test" />
+    <Plugin load="1" name="Test" />
+    <Plugin load="1" name="Test" />
+</Plugins>

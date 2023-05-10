@@ -7,7 +7,7 @@ get_filename_component(ProjectName ${AbsolutePathProject} NAME)
 # Qt 库
 set(QT_LIBRARY_LIST "Core")
 # 预编译
-add_compile_definitions(TEST_LIBRARY)
+add_compile_definitions(TEST_EXPORTS)
 
 # 创建项目
 CreateTarget(${ProjectName} "Dll" "Plugin")

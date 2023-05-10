@@ -10,6 +10,6 @@ Test::~Test()
 
 bool Test::Init()
 {
-	printf("Test plugin load success");
+	printf("Test plugin load success\n");
 	return false;
 }

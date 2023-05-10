@@ -381,7 +381,7 @@ IndentGotoLabels: false
 # -- None - 不进行缩进
 # -- AfterHash - 在前导'#'后缩进，'#'放在最左侧，之后的语句参与缩进
 # -- BeforeHash - 在前导'#'前进行缩进
-IndentPPDirectives: None
+IndentPPDirectives: BeforeHash
 
 # extern 内容的缩进规则
 # -- AfterExternBlock - 依赖 @ref AfterExternBlock 的配置
