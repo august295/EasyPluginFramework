@@ -1,9 +1,15 @@
 #ifndef __DATAMANAGER_H__
 #define __DATAMANAGER_H__
 
-#include <QtCore/QString>
+#include <any>
+#include <functional>
+#include <map>
+#include <mutex>
+#include <string>
+#include <vector>
 
 #include <TSingleton.hpp>
+#include <ThreadPool.hpp>
 
 #include "GlobalManager.hpp"
 
@@ -13,16 +19,45 @@
 class MANAGER_API DataManager : public TSingleton<DataManager> {
 public:
     /**
-     * @brief 设置可执行程序路径
-     * @param binPath     可执行程序路径
+     * @brief 回调函数别名
      */
-    void SetBinPath(QString binPath);
+    using Callback = std::function<void(const std::any&)>;
 
     /**
-     * @brief 获取可执行程序路径
-     * @return QString     可执行程序路径
+     * @brief 订阅
+     * @param name         数据类型名称
+     * @param callback     回调函数
      */
-    QString GetBinPath();
+    void Subscribe(std::string name, Callback callback);
+
+    /**
+     * @brief 取消订阅
+     * @param name         数据类型名称
+     * @param callback     回调函数
+     */
+    void Unsubscribe(std::string name, Callback callback);
+
+    /**
+     * @brief 发布消息，单线程模式
+     * @param name         数据类型名称
+     * @param data         详细数据
+     */
+    void Publish(std::string name, const std::any& data);
+
+    /**
+     * @brief 发布消息，多线程模式且分离
+     * @param name         数据类型名称
+     * @param data         详细数据
+     */
+    void PublishDetach(std::string name, const std::any& data);
+
+    /**
+     * @brief 发布消息，线程池模式
+     * @param name         数据类型名称
+     * @param data         详细数据
+     * @param futureVec    [out] 各线程执行结果
+     */
+    void PublishAsync(std::string name, const std::any& data, std::vector<std::future<void>>& futureVec);
 
 private:
     // 只允许使用单例模式，不允许创建对象

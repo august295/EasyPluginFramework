@@ -1,16 +1,17 @@
 #ifndef __PLUGINMANAGER_H__
 #define __PLUGINMANAGER_H__
 
-#include <QtCore/QMap>
-#include <QtCore/QPluginLoader>
-#include <QtCore/QString>
-#include <QtCore/QVector>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "GlobalManager.hpp"
 
 struct PluginConfig {
-    bool    load;
-    QString name;
+    bool        load;   // 是否加载
+    std::string name;   // 动态库名称
+    bool        isLoad; // 加载情况
+    std::string error;  // 加载错误信息
 };
 
 /**
@@ -25,13 +26,13 @@ public:
      * @brief 读取插件配置文件
      * @param filename     配置文件路径
      */
-    bool ReadPluginConfig(QString filename = "");
+    bool ReadPluginConfig(std::string filename = "");
 
     /**
      * @brief 加载单个插件
-     * @param pluginName   插件名称
+     * @param pluginConfig 插件配置信息
      */
-    bool LoadPluginOne(QString pluginName);
+    bool LoadPluginOne(PluginConfig& pluginConfig);
 
     /**
      * @brief 加载所有插件

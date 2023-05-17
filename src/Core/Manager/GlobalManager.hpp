@@ -1,6 +1,9 @@
 #ifndef __GLOBALMANAGER_HPP__
 #define __GLOBALMANAGER_HPP__
 
+/**
+ * @brief 跨平台导入导出宏
+ */
 #if defined(WIN32) || defined(_WIN32)
     #ifdef MANAGER_EXPORTS
         #define MANAGER_API __declspec(dllexport)

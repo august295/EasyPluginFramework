@@ -1,13 +1,12 @@
+# 引入宏
+include(${ROOT_DIR}/module_qt.cmake)
+include(${ROOT_DIR}/module_protobuf.cmake)
+
 # CreateTarget  宏名称
 # ProjectName   项目名称
 # Type          项目类型
 # Group         项目分组
 macro(CreateTarget ProjectName Type Group)
-    # 引入 qt 宏
-    if(NOT("${QT_LIBRARY_LIST}" STREQUAL ""))
-        include(${ROOT_DIR}/module_qt.cmake)
-    endif()
-
     # 项目名称
     message(STATUS ${ProjectName})
     project(${ProjectName})
@@ -22,6 +21,21 @@ macro(CreateTarget ProjectName Type Group)
     file(GLOB_RECURSE SOURCE_FILES "${CURRENT_PATH}/*.c" "${CURRENT_PATH}/*.cpp")
     file(GLOB_RECURSE FORM_FILES "${CURRENT_PATH}/*.ui")
     file(GLOB_RECURSE RESOURCE_FILES "${CURRENT_PATH}/*.qrc")
+
+    # 添加 qt 头文件
+    if(NOT("${QT_LIBRARY_LIST}" STREQUAL ""))
+        # 自动生成
+        set(CMAKE_INCLUDE_CURRENT_DIR ON)
+        set(CMAKE_AUTOMOC ON)
+        set(CMAKE_AUTOUIC ON)
+        set(CMAKE_AUTORCC ON)
+        AddQtInc("${QT_LIBRARY_LIST}")
+    endif()
+
+    # 自动生成 proto
+    if(${PROTOBUF})
+        AddProtobufInc(${ProtoFiles})
+    endif()
 
     # 文件分类
     if(CMAKE_CXX_PLATFORM_ID MATCHES "Windows")
@@ -41,19 +55,14 @@ macro(CreateTarget ProjectName Type Group)
     include_directories(${CURRENT_PATH})
     include_directories(${ROOT_DIR}/include)
 
-    # 添加 qt 头文件
-    if(NOT("${QT_LIBRARY_LIST}" STREQUAL ""))
-        AddQtInc("${QT_LIBRARY_LIST}")
-    endif()
-
     # 生成项目
     if(${Type} STREQUAL "Exe")
         # 生成可执行文件
-        add_executable(${PROJECT_NAME}
-            ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
+        add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
         set_target_properties(${PROJECT_NAME} PROPERTIES
             DEBUG_POSTFIX "d"
-            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+        )
     else()
         # 生成链接库
         if(${Type} STREQUAL "Lib")
@@ -61,7 +70,22 @@ macro(CreateTarget ProjectName Type Group)
         elseif(${Type} STREQUAL "Dll")
             add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
         endif()
+
+        # set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        set(TargetInclude "${ROOT_DIR}/include/${ProjectName}/")
+
+        if(NOT(${Group} STREQUAL "Plugin"))
+            if(NOT EXISTS ${TargetInclude})
+                file(MAKE_DIRECTORY ${TargetInclude})
+            endif()
+
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                ${HEADER_FILES}
+                ${TargetInclude})
+        endif()
     endif()
+
     # 项目分组
     set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${Group})
 
@@ -70,9 +94,13 @@ macro(CreateTarget ProjectName Type Group)
         AddQtLib("${QT_LIBRARY_LIST}")
     endif()
 
+    # 添加 protobuf
+    if(${PROTOBUF})
+        AddProtobufLib()
+    endif()
+
     # 添加项目生成的链接库
-    foreach(_lib ${SELF_LIBRARY_LIST})
-        include_directories(${CURRENT_PATH}/../)
-        target_link_libraries(${PROJECT_NAME} ${_lib})
+    foreach(library ${SELF_LIBRARY_LIST})
+        target_link_libraries(${PROJECT_NAME} ${library})
     endforeach()
 endmacro()

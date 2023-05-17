@@ -9,10 +9,10 @@ template <class T>
 class TSingleton {
 public:
     // C++11 Meyer's Singleton，线程安全
-    static T& instance()
+    static T* instance()
     {
         static T instance;
-        return instance;
+        return& instance;
     }
 
 protected:

@@ -2,13 +2,14 @@
 #include <spdlog/spdlog.h>
 
 #include <IPlugin.hpp>
+#include <Library.hpp>
 
-#include "DataManager.h"
+#include "ConfigManager.h"
 #include "PluginManager.h"
 
 struct PluginManager::PluginManagerPrivate {
-    QVector<PluginConfig>   m_PluginConfigVec; // 插件配置信息
-    QMap<QString, IPlugin*> m_IPluginMap;      // 插件映射关系
+    std::vector<PluginConfig>       m_PluginConfigVec; // 插件配置信息
+    std::map<std::string, IPlugin*> m_IPluginMap;      // 插件映射关系
 };
 
 PluginManager::PluginManager()
@@ -20,13 +21,13 @@ PluginManager::~PluginManager()
 {
 }
 
-bool PluginManager::ReadPluginConfig(QString filename)
+bool PluginManager::ReadPluginConfig(std::string filename)
 {
-    if (filename.isEmpty()) {
-        filename = DataManager::instance().GetBinPath() + "/../../resources/Plugins.xml";
+    if (filename.empty()) {
+        filename = ConfigManager::instance()->GetBinPath() + "/../../resources/Plugins.xml";
     }
     pugi::xml_document     doc;
-    pugi::xml_parse_result result = doc.load_file(filename.toUtf8().data(), pugi::parse_full, pugi::encoding_utf8);
+    pugi::xml_parse_result result = doc.load_file(filename.c_str(), pugi::parse_full, pugi::encoding_utf8);
     if (pugi::status_ok != result.status) {
         SPDLOG_ERROR(result.description());
         return false;
@@ -42,30 +43,43 @@ bool PluginManager::ReadPluginConfig(QString filename)
     return false;
 }
 
-bool PluginManager::LoadPluginOne(QString pluginName)
+bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 {
 #if (defined _DEBUG)
-    pluginName += "d";
+	pluginConfig.name += "d";
 #endif
-    QString        file = DataManager::instance().GetBinPath() + "/" + pluginName;
-    QPluginLoader* load = new QPluginLoader(file);
-    if (load->load()) {
-        QObject* obj    = load->instance();
-        IPlugin* plugin = qobject_cast<IPlugin*>(obj);
-		m_P->m_IPluginMap.insert(pluginName, plugin);
-        plugin->Init();
-    } else {
-        SPDLOG_ERROR(load->errorString().toUtf8().data());
+    std::string file   = ConfigManager::instance()->GetBinPath() + "/" + pluginConfig.name;
+    LIB_HANDLE  handle = handle = LIB_LOAD(file.c_str());
+    if (!handle) {
+		std::string error = LIB_ERROR();
+        pluginConfig.isLoad = false;
+        pluginConfig.error = error;
+        SPDLOG_ERROR("Failed to load {}: {}", file, error);
         return false;
     }
+
+    typedef IPlugin* (*CreatePluginFunc)();
+    CreatePluginFunc CreatePlugin = LoadFunction<CreatePluginFunc>(handle, "CreatePlugin");
+    if (!CreatePlugin) {
+        std::string error   = "CreatePlugin does not exist or has the wrong type";
+        pluginConfig.isLoad = false;
+        pluginConfig.error  = error;
+        SPDLOG_ERROR(error);
+        LIB_UNLOAD(handle);
+        return false;
+    }
+
+    // 调用导出函数创建对象，并进行初始化
+    IPlugin* plugin = CreatePlugin();
+    plugin->Init();
     return true;
 }
 
 void PluginManager::LoadPluginAll()
 {
-    for (auto pluginConfig : m_P->m_PluginConfigVec) {
+    for (auto& pluginConfig : m_P->m_PluginConfigVec) {
         if (pluginConfig.load) {
-            LoadPluginOne(pluginConfig.name); 
+            LoadPluginOne(pluginConfig);
         }
     }
 }

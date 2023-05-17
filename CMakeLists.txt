@@ -1,16 +1,15 @@
 ﻿# 要求最低Cmake版本
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.15.0)
 
 # 项目名称
 project(EasyPluginFramework)
 
 # C++标准
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 # 条件编译
 if(CMAKE_CXX_PLATFORM_ID MATCHES "Windows")
     add_compile_options("/utf-8")
-    add_compile_definitions(NOMINMAX)
 elseif(CMAKE_CXX_PLATFORM_ID MATCHES "MinGW")
     add_compile_options("-Wa,-mbig-obj")
 elseif(CMAKE_CXX_PLATFORM_ID MATCHES "Linux")

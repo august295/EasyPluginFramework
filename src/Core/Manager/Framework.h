@@ -3,9 +3,6 @@
 
 #include <memory>
 
-#include <QtCore/QMap>
-#include <QtCore/QString>
-
 #include "PluginManager.h"
 
 /**

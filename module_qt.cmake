@@ -9,12 +9,6 @@ elseif(CMAKE_CXX_PLATFORM_ID MATCHES "MinGW")
 elseif(CMAKE_CXX_PLATFORM_ID MATCHES "Linux")
 endif()
 
-# 自动生成
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-
 # ARGV0 QT 依赖文件
 macro(AddQtInc QtLibraryList)
     # 添加 qt include
@@ -28,7 +22,6 @@ endmacro()
 macro(AddQtLib QtLibraryList)
     # 添加 lib
     foreach(qt_library ${QtLibraryList})
-        link_directories(${QTDIR}/lib)
         target_link_libraries(${PROJECT_NAME} Qt5::${qt_library})
     endforeach()
 endmacro()
