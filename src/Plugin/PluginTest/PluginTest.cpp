@@ -12,6 +12,7 @@ PluginTest::PluginTest()
 
 PluginTest::~PluginTest()
 {
+	std::cout << " delete PluginTest" << std::endl;
 }
 
 bool PluginTest::Init()
@@ -52,6 +53,17 @@ bool PluginTest::Init()
 
     std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
     return false;
+}
+
+bool PluginTest::InitAppFinish()
+{
+	return false;
+}
+
+bool PluginTest::Release()
+{
+	delete this;
+	return false;
 }
 
 // 插件创建函数

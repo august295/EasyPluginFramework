@@ -2,7 +2,7 @@
 #define __TSINGLETON_HPP__
 
 /**
- * @brief 单例模板
+ * @brief 单例模板，奇异递归模板
  * @tparam T 实例化单例类
  */
 template <class T>

@@ -14,6 +14,10 @@ public:
     ~PluginTest();
 
     bool Init() override;
+
+	bool InitAppFinish() override;
+
+	bool Release() override;
 };
 
 #endif

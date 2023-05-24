@@ -7,6 +7,14 @@
 #include "ConfigManager.h"
 #include "PluginManager.h"
 
+struct PluginConfig {
+    bool        load;   // 是否加载
+    std::string name;   // 动态库名称
+    bool        isLoad; // 加载情况
+    std::string error;  // 加载错误信息
+    LIB_HANDLE  handle; // 动态库句柄
+};
+
 struct PluginManager::PluginManagerPrivate {
     std::vector<PluginConfig>       m_PluginConfigVec; // 插件配置信息
     std::map<std::string, IPlugin*> m_IPluginMap;      // 插件映射关系
@@ -45,19 +53,22 @@ bool PluginManager::ReadPluginConfig(std::string filename)
 
 bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 {
+    std::string useName = pluginConfig.name;
 #if (defined _DEBUG)
-	pluginConfig.name += "d";
+    useName += "d";
 #endif
-    std::string file   = ConfigManager::instance()->GetBinPath() + "/" + pluginConfig.name;
+    // 加载动态库
+    std::string file   = ConfigManager::instance()->GetBinPath() + "/" + useName;
     LIB_HANDLE  handle = handle = LIB_LOAD(file.c_str());
     if (!handle) {
-		std::string error = LIB_ERROR();
+        std::string error   = LIB_ERROR();
         pluginConfig.isLoad = false;
-        pluginConfig.error = error;
+        pluginConfig.error  = error;
         SPDLOG_ERROR("Failed to load {}: {}", file, error);
         return false;
     }
 
+    // 加载函数
     typedef IPlugin* (*CreatePluginFunc)();
     CreatePluginFunc CreatePlugin = LoadFunction<CreatePluginFunc>(handle, "CreatePlugin");
     if (!CreatePlugin) {
@@ -68,10 +79,12 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
         LIB_UNLOAD(handle);
         return false;
     }
+    pluginConfig.handle = handle;
 
     // 调用导出函数创建对象，并进行初始化
     IPlugin* plugin = CreatePlugin();
     plugin->Init();
+    m_P->m_IPluginMap.emplace(pluginConfig.name, plugin);
     return true;
 }
 
@@ -80,6 +93,24 @@ void PluginManager::LoadPluginAll()
     for (auto& pluginConfig : m_P->m_PluginConfigVec) {
         if (pluginConfig.load) {
             LoadPluginOne(pluginConfig);
+        }
+    }
+}
+
+bool PluginManager::UnloadPluginOne(PluginConfig& pluginConfig)
+{
+    IPlugin* plugin = m_P->m_IPluginMap[pluginConfig.name];
+    plugin->Release();
+    LIB_UNLOAD(pluginConfig.handle);
+    m_P->m_IPluginMap.erase(pluginConfig.name);
+    return false;
+}
+
+void PluginManager::UnloadPluginAll()
+{
+    for (auto& pluginConfig : m_P->m_PluginConfigVec) {
+        if (pluginConfig.isLoad) {
+            UnloadPluginOne(pluginConfig);
         }
     }
 }

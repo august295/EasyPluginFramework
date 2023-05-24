@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
     auto      pluginManager = framework.GetPluginManager();
     pluginManager->ReadPluginConfig();
     pluginManager->LoadPluginAll();
+	pluginManager->UnloadPluginAll();
 
     return a.exec();
 }

@@ -7,12 +7,7 @@
 
 #include "GlobalManager.hpp"
 
-struct PluginConfig {
-    bool        load;   // 是否加载
-    std::string name;   // 动态库名称
-    bool        isLoad; // 加载情况
-    std::string error;  // 加载错误信息
-};
+struct PluginConfig;
 
 /**
  * @brief 插件管理
@@ -38,6 +33,17 @@ public:
      * @brief 加载所有插件
      */
     void LoadPluginAll();
+
+    /**
+     * @brief 卸载单个插件
+     * @param pluginConfig 插件配置信息
+     */
+    bool UnloadPluginOne(PluginConfig& pluginConfig);
+
+    /**
+     * @brief 卸载所有插件
+     */
+    void UnloadPluginAll();
 
 private:
     struct PluginManagerPrivate;
