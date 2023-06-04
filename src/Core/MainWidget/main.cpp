@@ -1,13 +1,9 @@
-#include <iostream>
+#include <QApplication>
 
-#include <QtCore/QDir>
-#include <QtWidgets/QApplication>
+#include "MainWindow.h"
 
-#include <Manager/ConfigManager.h>
 #include <Manager/DataManager.h>
-#include <Manager/Framework.h>
-
-#include "ProtoTest/Person.pb.h"
+#include <ProtoTest/Person.pb.h>
 
 void test(const std::any& data)
 {
@@ -33,22 +29,20 @@ public:
     }
 };
 
-int main(int argc, char* argv[])
+void test()
 {
-    QApplication a(argc, argv);
-
     //   // 测试 lambda
     //   DataManager::instance()->Subscribe("int", [](const std::any& data) {
     //       std::this_thread::sleep_for(std::chrono::seconds(1));
     //       int num = std::any_cast<int>(data);
     //       std::cout << num + 3 << std::endl;
     //   });
-    //	 // 测试函数
+    //	 // 测试 function
     //   DataManager::instance()->Subscribe("int", test);
-    //   // 测试类
+    //   // 测试 class
     //   Test t;
 
-    // 测试 protobuf 原生类
+    // 测试 protobuf 结构体
     DataManager::instance()->Subscribe(TEST::Person::descriptor()->full_name() + "any", [](const std::any data) {
         TEST::Person p = std::any_cast<TEST::Person>(data);
         std::cout << p.name() << std::endl;
@@ -62,15 +56,12 @@ int main(int argc, char* argv[])
         std::cout << p.name() << std::endl;
         std::cout << p.email() << std::endl;
     });
+}
 
-    QString binPath = QApplication::applicationDirPath();
-    ConfigManager::instance()->SetBinPath(binPath.toStdString());
-
-    Framework framework;
-    auto      pluginManager = framework.GetPluginManager();
-    pluginManager->ReadPluginConfig();
-    pluginManager->LoadPluginAll();
-	pluginManager->UnloadPluginAll();
-
+int main(int argc, char* argv[])
+{
+    QApplication a(argc, argv);
+	MainWindow w;
+	w.show();
     return a.exec();
 }

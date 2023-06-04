@@ -58,7 +58,9 @@ macro(CreateTarget ProjectName Type Group)
     # 生成项目
     if(${Type} STREQUAL "Exe")
         # 生成可执行文件
-        add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
+        add_executable(${PROJECT_NAME}
+            WIN32
+            ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
         set_target_properties(${PROJECT_NAME} PROPERTIES
             DEBUG_POSTFIX "d"
             VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
@@ -71,7 +73,6 @@ macro(CreateTarget ProjectName Type Group)
             add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
         endif()
 
-        # set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
         set(TargetInclude "${ROOT_DIR}/include/${ProjectName}/")
 
         if(NOT(${Group} STREQUAL "Plugin"))

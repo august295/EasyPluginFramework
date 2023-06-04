@@ -31,7 +31,7 @@ private:
     ~ConfigManager();
 
     struct ConfigManagerPrivate;
-    ConfigManagerPrivate* m_P;
+    ConfigManagerPrivate* m_impl;
 };
 
 #endif

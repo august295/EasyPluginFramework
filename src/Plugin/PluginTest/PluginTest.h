@@ -13,6 +13,10 @@ public:
     PluginTest();
     ~PluginTest();
 
+    std::string Version() override;
+
+    std::string Description() override;
+
     bool Init() override;
 
 	bool InitAppFinish() override;

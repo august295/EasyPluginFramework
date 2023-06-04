@@ -16,3 +16,4 @@ include/*
 !include/ThreadPool.hpp
 !include/TSingleton.hpp
 !include/Library.hpp
+!include/Utils.hpp

@@ -5,9 +5,22 @@
 #include <string>
 #include <vector>
 
+#include <IPlugin.hpp>
+#include <Library.hpp>
+#include <Utils.hpp>
+
 #include "GlobalManager.hpp"
 
-struct PluginConfig;
+struct PluginConfig {
+    std::string group;       // 分组
+    bool        load;        // 是否加载
+    std::string name;        // 动态库名称
+    bool        isLoad;      // 加载情况
+    std::string error;       // 加载错误信息
+    LIB_HANDLE  handle;      // 动态库句柄
+    std::string version;     // 版本
+    std::string description; // 描述
+};
 
 /**
  * @brief 插件管理
@@ -45,9 +58,11 @@ public:
      */
     void UnloadPluginAll();
 
+    std::vector<PluginConfig> GetPluginConfigVec();
+
 private:
     struct PluginManagerPrivate;
-    PluginManagerPrivate* m_P;
+    PluginManagerPrivate* m_impl;
 };
 
 #endif

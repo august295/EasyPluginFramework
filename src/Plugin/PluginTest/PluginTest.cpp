@@ -12,7 +12,17 @@ PluginTest::PluginTest()
 
 PluginTest::~PluginTest()
 {
-	std::cout << " delete PluginTest" << std::endl;
+    std::cout << " delete PluginTest" << std::endl;
+}
+
+std::string PluginTest::Version()
+{
+    return "0.0.1";
+}
+
+std::string PluginTest::Description()
+{
+    return "测试插件";
 }
 
 bool PluginTest::Init()

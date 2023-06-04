@@ -9,12 +9,26 @@
     #define IPLUGIN_API
 #endif
 
+#include <string>
+
 /**
  * @brief 插件接口类
  */
 class IPLUGIN_API IPlugin {
 public:
     virtual ~IPlugin() {}
+
+    /**
+     * @brief 获取插件版本
+     * @return std::string 插件版本
+     */
+    virtual std::string Version() = 0;
+
+    /**
+     * @brief 获取插件描述
+     * @return std::string 插件描述
+     */
+    virtual std::string Description() = 0;
 
     // 初始化插件
     virtual bool Init() = 0;
