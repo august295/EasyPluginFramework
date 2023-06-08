@@ -9,11 +9,6 @@ build
 
 # thirdpart
 include/*
+!include/common
 !include/pugixml
 !include/spdlog
-!include/google
-!include/IPlugin.hpp
-!include/ThreadPool.hpp
-!include/TSingleton.hpp
-!include/Library.hpp
-!include/Utils.hpp

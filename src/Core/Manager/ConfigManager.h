@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <TSingleton.hpp>
+#include <common/TSingleton.hpp>
 
 #include "GlobalManager.hpp"
 

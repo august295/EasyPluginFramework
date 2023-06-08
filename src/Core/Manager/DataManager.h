@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include <TSingleton.hpp>
-#include <ThreadPool.hpp>
+#include <common/TSingleton.hpp>
+#include <common/ThreadPool.hpp>
 
 #include "GlobalManager.hpp"
 

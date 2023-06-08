@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Plugins>
-    <Test>
-        <Plugin load="1" name="PluginTest" />
-        <Plugin load="1" name="PluginTest2" />
-    </Test>
+	<Test>
+		<PluginTest load="true" />
+		<PluginTest2 load="true" />
+	</Test>
 </Plugins>

@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include <IPlugin.hpp>
-#include <Library.hpp>
-#include <Utils.hpp>
+#include <common/IPlugin.hpp>
+#include <common/Library.hpp>
+#include <common/Utils.hpp>
 
 #include "GlobalManager.hpp"
 
@@ -31,10 +31,21 @@ public:
     ~PluginManager();
 
     /**
-     * @brief 读取插件配置文件
-     * @param filename     配置文件路径
+     * @brief 设置加载插件配置文件路径
+     * @param filepath     配置文件
      */
-    bool ReadPluginConfig(std::string filename = "");
+    void SetPluginConfigFile(const std::string& filepath);
+
+    /**
+     * @brief 读取插件配置文件
+     */
+    bool ReadPluginConfig();
+
+    /**
+     * @brief 写入插件配置文件
+     * @param pluginConfigVec 插件配置信息
+     */
+    bool WritePluginConfig(const std::vector<PluginConfig>& pluginConfigVec);
 
     /**
      * @brief 加载单个插件
@@ -58,11 +69,14 @@ public:
      */
     void UnloadPluginAll();
 
+    /**
+     * @brief 获取插件配置信息
+     */
     std::vector<PluginConfig> GetPluginConfigVec();
 
 private:
     struct PluginManagerPrivate;
-    PluginManagerPrivate* m_impl;
+    std::shared_ptr<PluginManagerPrivate> m_impl;
 };
 
 #endif

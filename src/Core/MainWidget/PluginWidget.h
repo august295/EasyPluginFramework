@@ -1,6 +1,7 @@
 #pragma once
 
-#include <QWidget>
+#include <QtWidgets/QTreeWidgetItem>
+#include <QtWidgets/QWidget>
 
 #include <Manager/PluginManager.h>
 
@@ -45,6 +46,47 @@ public slots:
      */
     void SlotLineEditFilter(const QString& filter);
 
+    /**
+     * @brief QTreeItem 内容改变触发
+     * @param item      当前节点
+     * @param column    节点列
+     */
+    void SlotTreeItemChanged(QTreeWidgetItem* item, int column);
+
+    /**
+     * @brief 更新父节点 check 选中状态
+     * @param item      子节点
+     */
+    void SlotUpdateParentItem(QTreeWidgetItem* item);
+
+    /**
+     * @brief 更新插件配置
+     * @param name      插件名称
+     * @param load      是否加载
+     */
+    void SlotUpdatePluginConfig(const QString& name, bool load);
+
+    /**
+     * @brief 获取插件加载情况
+     * @param name      插件名称
+     * @return int      插件加载情况
+     */
+    int SlotGetPluginConfigLoad(const QString& name);
+
+    /**
+     * @brief 点击确定
+     */
+    void SlotPushButtonOk();
+
+signals:
+    /**
+     * @brief 更新插件配置
+     */
+    void SignalUpdatePluginConfigVec(const std::vector<PluginConfig>& pluginConfigVec);
+
 private:
     Ui::PluginWidgetClass* ui;
+
+    struct PluginWidgetPrivate;
+    std::shared_ptr<PluginWidgetPrivate> m_impl;
 };

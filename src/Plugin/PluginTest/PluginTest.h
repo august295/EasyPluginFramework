@@ -1,7 +1,7 @@
 #ifndef __PLUGINTEST_H__
 #define __PLUGINTEST_H__
 
-#include <IPlugin.hpp>
+#include <common/IPlugin.hpp>
 
 #include "GlobalTest.hpp"
 

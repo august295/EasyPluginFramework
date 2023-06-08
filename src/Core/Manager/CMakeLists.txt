@@ -1,5 +1,5 @@
 ﻿# 引入外部函数
-include(${ROOT_DIR}/module.cmake)
+include(${ROOT_DIR}/cmake/module.cmake)
 
 # 获取绝对路径
 set(AbsolutePathProject ${CMAKE_CURRENT_SOURCE_DIR})

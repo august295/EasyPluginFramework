@@ -6,26 +6,30 @@
 #include "PluginManager.h"
 
 struct PluginManager::PluginManagerPrivate {
-    std::vector<PluginConfig>       m_PluginConfigVec; // 插件配置信息
-    std::map<std::string, IPlugin*> m_IPluginMap;      // 插件映射关系
+    std::string                     m_PluginConfigFile; // 配置文件
+    std::vector<PluginConfig>       m_PluginConfigVec;  // 插件配置信息
+    std::map<std::string, IPlugin*> m_IPluginMap;       // 插件映射关系
 };
 
 PluginManager::PluginManager()
-    : m_impl(new PluginManagerPrivate)
+    : m_impl(std::make_shared<PluginManagerPrivate>())
 {
+    m_impl->m_PluginConfigFile = ConfigManager::instance()->GetBinPath() + "/../../resources/configs/plugins.xml";
 }
 
 PluginManager::~PluginManager()
 {
 }
 
-bool PluginManager::ReadPluginConfig(std::string filename)
+void PluginManager::SetPluginConfigFile(const std::string& filepath)
 {
-    if (filename.empty()) {
-        filename = ConfigManager::instance()->GetBinPath() + "/../../resources/configs/plugins.xml";
-    }
+    m_impl->m_PluginConfigFile = filepath;
+}
+
+bool PluginManager::ReadPluginConfig()
+{
     pugi::xml_document     doc;
-    pugi::xml_parse_result result = doc.load_file(filename.c_str(), pugi::parse_full, pugi::encoding_utf8);
+    pugi::xml_parse_result result = doc.load_file(m_impl->m_PluginConfigFile.c_str(), pugi::parse_full, pugi::encoding_utf8);
     if (pugi::status_ok != result.status) {
         LOG_ERROR(result.description());
         return false;
@@ -36,11 +40,31 @@ bool PluginManager::ReadPluginConfig(std::string filename)
         for (pugi::xml_node pluginNode = groupNode.first_child(); pluginNode; pluginNode = pluginNode.next_sibling()) {
             PluginConfig pluginConfig;
             pluginConfig.group = groupNode.name();
-            pluginConfig.name  = pluginNode.attribute("name").as_string();
+            pluginConfig.name  = pluginNode.name();
             pluginConfig.load  = pluginNode.attribute("load").as_bool();
             m_impl->m_PluginConfigVec.push_back(pluginConfig);
         }
     }
+    return true;
+}
+
+bool PluginManager::WritePluginConfig(const std::vector<PluginConfig>& pluginConfigVec)
+{
+    pugi::xml_document     doc;
+    pugi::xml_parse_result result = doc.load_file(m_impl->m_PluginConfigFile.c_str(), pugi::parse_full, pugi::encoding_utf8);
+    if (pugi::status_ok != result.status) {
+        LOG_ERROR(result.description());
+        return false;
+    }
+
+    for (auto plugin : pluginConfigVec) {
+        std::string      node_path = std::string("/Plugins/") + plugin.group + "/" + plugin.name;
+        pugi::xpath_node node      = doc.select_node(pugi::xpath_query(node_path.c_str()));
+        if (nullptr != node) {
+            node.node().attribute("load").set_value(plugin.load);
+        }
+    }
+    doc.save_file(m_impl->m_PluginConfigFile.c_str(), "\t", 1U, pugi::encoding_utf8);
     return true;
 }
 
@@ -51,10 +75,13 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
     std::string file   = ConfigManager::instance()->GetBinPath() + "/" + useName;
     LIB_HANDLE  handle = LIB_LOAD(file.c_str());
     if (!handle) {
-        std::string error   = RemoveCRLF(LIB_ERROR());
+        std::string error   = LIB_ERROR();
         pluginConfig.isLoad = false;
-        pluginConfig.error  = gbk_to_utf8(error);
-        LOG_ERROR("Failed to load {}: {}", file, error);
+#if defined(_WIN32) || defined(_WIN64)
+        error = gbk_to_utf8(RemoveCRLF(error));
+#endif
+        pluginConfig.error = error;
+        LOG_ERROR("Failed to load {}: {}", file, pluginConfig.error);
         return false;
     }
 

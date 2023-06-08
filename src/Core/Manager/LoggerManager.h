@@ -4,7 +4,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
-#include <TSingleton.hpp>
+#include <common/TSingleton.hpp>
 
 #include "GlobalManager.hpp"
 

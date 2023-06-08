@@ -46,12 +46,16 @@ void MainWindow::InitFramework()
 {
     QString binPath = QApplication::applicationDirPath();
     ConfigManager::instance()->SetBinPath(binPath.toStdString());
+
     m_impl->m_FrameworkSptr = std::make_shared<Framework>();
-    auto pluginManager      = m_impl->m_FrameworkSptr->GetPluginManager();
-    pluginManager->ReadPluginConfig();
-    pluginManager->LoadPluginAll();
+    m_impl->m_FrameworkSptr->GetPluginManager()->ReadPluginConfig();
+    m_impl->m_FrameworkSptr->GetPluginManager()->LoadPluginAll();
+
     m_impl->m_PluginWidgetSptr = std::make_shared<PluginWidget>(this);
-    m_impl->m_PluginWidgetSptr->SlotShowTree(pluginManager->GetPluginConfigVec());
+    m_impl->m_PluginWidgetSptr->SlotShowTree(m_impl->m_FrameworkSptr->GetPluginManager()->GetPluginConfigVec());
+    connect(m_impl->m_PluginWidgetSptr.get(), &PluginWidget::SignalUpdatePluginConfigVec, this, [&](const std::vector<PluginConfig>& pluginConfigVec) {
+        m_impl->m_FrameworkSptr->GetPluginManager()->WritePluginConfig(pluginConfigVec);
+    });
 }
 
 void MainWindow::InitMenuBar()
