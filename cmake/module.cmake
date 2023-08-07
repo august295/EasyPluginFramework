@@ -2,6 +2,14 @@
 include(${ROOT_DIR}/cmake/module_qt.cmake)
 include(${ROOT_DIR}/cmake/module_protobuf.cmake)
 
+# LinkLibraryHeaderOnly  宏名称
+# LibraryHeaderOnlyList  三方库仅头文件
+macro(LinkLibraryHeaderOnly LibraryHeaderOnlyList)
+    foreach(lib ${LibraryHeaderOnlyList})
+        include_directories(${ROOT_DIR}/3rdparty/${lib}/include)
+    endforeach()
+endmacro()
+
 # CreateTarget  宏名称
 # ProjectName   项目名称
 # Type          项目类型
@@ -19,7 +27,6 @@ macro(CreateTarget ProjectName Type Group)
     set(RESOURCE_FILES "")
     file(GLOB_RECURSE HEADER_FILES "${CURRENT_PATH}/*.h" "${CURRENT_PATH}/*.hpp")
     file(GLOB_RECURSE SOURCE_FILES "${CURRENT_PATH}/*.c" "${CURRENT_PATH}/*.cpp")
-    file(GLOB_RECURSE FORM_FILES "${CURRENT_PATH}/*.ui")
 
     # 添加 qt 头文件
     if(NOT("${QT_LIBRARY_LIST}" STREQUAL ""))
@@ -29,7 +36,8 @@ macro(CreateTarget ProjectName Type Group)
         set(CMAKE_AUTOUIC ON)
         set(CMAKE_AUTORCC ON)
         AddQtInc("${QT_LIBRARY_LIST}")
-        file(GLOB_RECURSE RESOURCE_FILES "${ROOT_DIR}/resources/*.qrc")
+        file(GLOB_RECURSE FORM_FILES "${CURRENT_PATH}/*.ui")
+        file(GLOB_RECURSE RESOURCE_FILES "${CURRENT_PATH}/*.qrc")
     endif()
 
     # 文件分类
@@ -37,7 +45,7 @@ macro(CreateTarget ProjectName Type Group)
         source_group(TREE ${CURRENT_PATH} PREFIX "Header Files" FILES ${HEADER_FILES})
         source_group(TREE ${CURRENT_PATH} PREFIX "Source Files" FILES ${SOURCE_FILES})
         source_group(TREE ${CURRENT_PATH} PREFIX "Form Files" FILES ${FORM_FILES})
-        source_group(TREE "${ROOT_DIR}/resources" PREFIX "Resource Files" FILES ${RESOURCE_FILES})
+        source_group(TREE ${CURRENT_PATH} PREFIX "Resource Files" FILES ${RESOURCE_FILES})
     elseif(CMAKE_CXX_PLATFORM_ID MATCHES "MinGW")
         source_group("Header Files" FILES ${HEADER_FILES})
         source_group("Source Files" FILES ${SOURCE_FILES})
@@ -47,8 +55,8 @@ macro(CreateTarget ProjectName Type Group)
     endif()
 
     # 头文件搜索的路径
-    include_directories(${CURRENT_PATH})
-    include_directories(${ROOT_DIR}/include)
+    include_directories(${ROOT_DIR}/src/include)
+    LinkLibraryHeaderOnly("${LibraryHeaderOnlyList}")
 
     # 生成项目
     if(${Type} STREQUAL "Exe")
@@ -68,13 +76,10 @@ macro(CreateTarget ProjectName Type Group)
             add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
         endif()
 
-        set(TargetInclude "${ROOT_DIR}/include/${ProjectName}/")
-
         if(NOT(${Group} STREQUAL "Plugin"))
-            if(NOT EXISTS ${TargetInclude})
-                file(MAKE_DIRECTORY ${TargetInclude})
-            endif()
-
+            # 拷贝头文件
+            set(TargetInclude "${ROOT_DIR}/src/include/${ProjectName}/")
+            file(MAKE_DIRECTORY ${TargetInclude})
             add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 ${HEADER_FILES}
@@ -97,6 +102,7 @@ macro(CreateTarget ProjectName Type Group)
 
     foreach(library ${THIRD_LIBRARY_LIST})
         target_include_directories(${PROJECT_NAME} PUBLIC ${${library}_ROOT}/include)
+
         if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
             find_library(lib
                 NAMES ${library}d lib${library}d
@@ -140,9 +146,6 @@ macro(CreateProto ProjectName Type Group)
     elseif(CMAKE_CXX_PLATFORM_ID MATCHES "Linux")
     endif()
 
-    # 头文件搜索的路径
-    include_directories(${CURRENT_PATH})
-
     # 生成链接库
     if(${Type} STREQUAL "Lib")
         add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
@@ -150,12 +153,9 @@ macro(CreateProto ProjectName Type Group)
         add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
     endif()
 
-    set(TargetInclude "${ROOT_DIR}/include/${ProjectName}/")
-
-    if(NOT EXISTS ${TargetInclude})
-        file(MAKE_DIRECTORY ${TargetInclude})
-    endif()
-
+    # 拷贝头文件
+    set(TargetInclude "${ROOT_DIR}/src/include/${ProjectName}/")
+    file(MAKE_DIRECTORY ${TargetInclude})
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${HEADER_FILES}

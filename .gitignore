@@ -8,7 +8,5 @@ build
 .vscode
 
 # thirdpart
-include/*
-!include/common
-!include/pugixml
-!include/spdlog
+src/include/*
+!src/include/common

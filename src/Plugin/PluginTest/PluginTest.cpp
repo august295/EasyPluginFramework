@@ -15,16 +15,6 @@ PluginTest::~PluginTest()
     std::cout << " delete PluginTest" << std::endl;
 }
 
-std::string PluginTest::Version()
-{
-    return "0.0.1";
-}
-
-std::string PluginTest::Description()
-{
-    return "测试插件";
-}
-
 bool PluginTest::Init()
 {
     auto start = std::chrono::steady_clock::now();
@@ -62,18 +52,43 @@ bool PluginTest::Init()
     std::chrono::duration<double> elapsed_seconds = std::chrono::duration<double>(end - start);
 
     std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-    return false;
+    return true;
 }
 
 bool PluginTest::InitAppFinish()
 {
-	return false;
+    return true;
 }
 
 bool PluginTest::Release()
 {
-	delete this;
-	return false;
+    delete this;
+    return true;
+}
+
+
+std::string PluginTest::Version()
+{
+    return "0.0.1";
+}
+
+std::string PluginTest::Description()
+{
+    return "测试插件";
+}
+
+std::string PluginTest::Icon()
+{
+	return "";
+}
+
+PluginLocation PluginTest::Location()
+{
+	return PluginLocation();
+}
+
+void PluginTest::WidgetShow()
+{
 }
 
 // 插件创建函数

@@ -154,7 +154,7 @@ BraceWrapping:
   AfterCaseLabel: false
 
   # 是否在 class 后换行？(true\false)
-  AfterClass: false
+  AfterClass: true
 
   # 控制语句后的换行规则
   # -- Never - 控制语句后不换行

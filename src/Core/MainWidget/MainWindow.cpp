@@ -50,17 +50,44 @@ void MainWindow::InitFramework()
     m_impl->m_FrameworkSptr = std::make_shared<Framework>();
     m_impl->m_FrameworkSptr->GetPluginManager()->ReadPluginConfig();
     m_impl->m_FrameworkSptr->GetPluginManager()->LoadPluginAll();
-
-    m_impl->m_PluginWidgetSptr = std::make_shared<PluginWidget>(this);
-    m_impl->m_PluginWidgetSptr->SlotShowTree(m_impl->m_FrameworkSptr->GetPluginManager()->GetPluginConfigVec());
-    connect(m_impl->m_PluginWidgetSptr.get(), &PluginWidget::SignalUpdatePluginConfigVec, this, [&](const std::vector<PluginConfig>& pluginConfigVec) {
-        m_impl->m_FrameworkSptr->GetPluginManager()->WritePluginConfig(pluginConfigVec);
-    });
 }
 
 void MainWindow::InitMenuBar()
 {
+    auto pluginConfigMap = m_impl->m_FrameworkSptr->GetPluginManager()->GetPluginConfigMap();
+    // 插件加载情况界面
+    m_impl->m_PluginWidgetSptr = std::make_shared<PluginWidget>(this);
+    m_impl->m_PluginWidgetSptr->SlotShowTree(pluginConfigMap);
+    connect(m_impl->m_PluginWidgetSptr.get(), &PluginWidget::SignalUpdatePluginConfigVec, this, [&](const std::unordered_map<std::string, PluginConfig>& pluginConfigMap) {
+        m_impl->m_FrameworkSptr->GetPluginManager()->WritePluginConfig(pluginConfigMap);
+    });
     connect(ui->action_Plugin, &QAction::triggered, this, [&]() {
         m_impl->m_PluginWidgetSptr->show();
     });
+
+    // 显示插件
+    for (auto iter : pluginConfigMap) {
+        PluginConfig   pluginConfig = iter.second;
+        PluginLocation location     = pluginConfig.location;
+        if (pluginConfig.load && PluginType::WIDGET == location.m_type) {
+            QString page      = QString::fromStdString(location.m_page);
+            QMenu*  page_menu = ui->menuBar->findChild<QMenu*>(page, Qt::FindDirectChildrenOnly);
+            if (!page_menu) {
+                page_menu = new QMenu(page);
+				ui->menuBar->addMenu(page_menu);
+            }
+            QString group      = QString::fromStdString(location.m_group);
+            QMenu*  group_menu = page_menu->findChild<QMenu*>(group, Qt::FindDirectChildrenOnly);
+            if (!group_menu) {
+                group_menu = new QMenu(group);
+				page_menu->addMenu(group_menu);
+            }
+            QString  name   = QString::fromStdString(location.m_name);
+            QAction* action = new QAction(name);
+            group_menu->addAction(action);
+            connect(action, &QAction::triggered, this, [=]() {
+                pluginConfig.plugin->WidgetShow();
+            });
+        }
+    }
 }

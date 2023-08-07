@@ -13,7 +13,8 @@ namespace Ui {
 };
 QT_END_NAMESPACE
 
-class PluginWidget : public QWidget {
+class PluginWidget : public QWidget
+{
     Q_OBJECT
 
 public:
@@ -30,7 +31,7 @@ public slots:
      * @brief 显示插件加载情况
      * @param pluginConfigVec 插件配置数组
      */
-    void SlotShowTree(const std::vector<PluginConfig>& pluginConfigVec);
+    void SlotShowTree(const std::unordered_map<std::string, PluginConfig>& pluginConfigMap);
 
     /**
      * @brief 查找分组节点
@@ -82,7 +83,7 @@ signals:
     /**
      * @brief 更新插件配置
      */
-    void SignalUpdatePluginConfigVec(const std::vector<PluginConfig>& pluginConfigVec);
+    void SignalUpdatePluginConfigVec(const std::unordered_map<std::string, PluginConfig>& pluginConfigVec);
 
 private:
     Ui::PluginWidgetClass* ui;

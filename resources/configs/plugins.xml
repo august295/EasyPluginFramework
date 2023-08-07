@@ -3,5 +3,6 @@
 	<Test>
 		<PluginTest load="true" />
 		<PluginTest2 load="true" />
+		<PluginCodeConvert load="true" />
 	</Test>
 </Plugins>

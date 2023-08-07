@@ -13,15 +13,21 @@ public:
     PluginTest();
     ~PluginTest();
 
+    bool Init() override;
+
+    bool InitAppFinish() override;
+
+    bool Release() override;
+
     std::string Version() override;
 
     std::string Description() override;
 
-    bool Init() override;
+	std::string Icon() override;
 
-	bool InitAppFinish() override;
+	PluginLocation Location() override;
 
-	bool Release() override;
+	void WidgetShow() override;
 };
 
 #endif

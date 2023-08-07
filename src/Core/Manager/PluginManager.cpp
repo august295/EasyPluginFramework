@@ -6,9 +6,8 @@
 #include "PluginManager.h"
 
 struct PluginManager::PluginManagerPrivate {
-    std::string                     m_PluginConfigFile; // 配置文件
-    std::vector<PluginConfig>       m_PluginConfigVec;  // 插件配置信息
-    std::map<std::string, IPlugin*> m_IPluginMap;       // 插件映射关系
+    std::string                                   m_PluginConfigFile; // 配置文件
+    std::unordered_map<std::string, PluginConfig> m_PluginConfigMap;  // 插件映射关系
 };
 
 PluginManager::PluginManager()
@@ -42,13 +41,13 @@ bool PluginManager::ReadPluginConfig()
             pluginConfig.group = groupNode.name();
             pluginConfig.name  = pluginNode.name();
             pluginConfig.load  = pluginNode.attribute("load").as_bool();
-            m_impl->m_PluginConfigVec.push_back(pluginConfig);
+            m_impl->m_PluginConfigMap.emplace(pluginConfig.name, pluginConfig);
         }
     }
     return true;
 }
 
-bool PluginManager::WritePluginConfig(const std::vector<PluginConfig>& pluginConfigVec)
+bool PluginManager::WritePluginConfig(const std::unordered_map<std::string, PluginConfig>& pluginConfigMap)
 {
     pugi::xml_document     doc;
     pugi::xml_parse_result result = doc.load_file(m_impl->m_PluginConfigFile.c_str(), pugi::parse_full, pugi::encoding_utf8);
@@ -57,11 +56,12 @@ bool PluginManager::WritePluginConfig(const std::vector<PluginConfig>& pluginCon
         return false;
     }
 
-    for (auto plugin : pluginConfigVec) {
-        std::string      node_path = std::string("/Plugins/") + plugin.group + "/" + plugin.name;
-        pugi::xpath_node node      = doc.select_node(pugi::xpath_query(node_path.c_str()));
+    for (auto iter : pluginConfigMap) {
+        PluginConfig     pluginConfig = iter.second;
+        std::string      node_path    = std::string("/Plugins/") + pluginConfig.group + "/" + pluginConfig.name;
+        pugi::xpath_node node         = doc.select_node(pugi::xpath_query(node_path.c_str()));
         if (nullptr != node) {
-            node.node().attribute("load").set_value(plugin.load);
+            node.node().attribute("load").set_value(pluginConfig.load);
         }
     }
     doc.save_file(m_impl->m_PluginConfigFile.c_str(), "\t", 1U, pugi::encoding_utf8);
@@ -101,11 +101,13 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 
     // 调用导出函数创建对象，并进行初始化
     IPlugin* plugin          = CreatePlugin();
+    pluginConfig.plugin      = plugin;
     pluginConfig.version     = plugin->Version();
     pluginConfig.description = plugin->Description();
+    pluginConfig.location    = plugin->Location();
+
     if (pluginConfig.load) {
         plugin->Init();
-        m_impl->m_IPluginMap.emplace(pluginConfig.name, plugin);
     } else {
         plugin->Release();
     }
@@ -114,30 +116,32 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 
 void PluginManager::LoadPluginAll()
 {
-    for (auto& pluginConfig : m_impl->m_PluginConfigVec) {
+    for (auto& iter : m_impl->m_PluginConfigMap) {
+        PluginConfig& pluginConfig = iter.second;
         LoadPluginOne(pluginConfig);
     }
 }
 
 bool PluginManager::UnloadPluginOne(PluginConfig& pluginConfig)
 {
-    IPlugin* plugin = m_impl->m_IPluginMap[pluginConfig.name];
+    IPlugin* plugin = m_impl->m_PluginConfigMap[pluginConfig.name].plugin;
     plugin->Release();
     LIB_UNLOAD(pluginConfig.handle);
-    m_impl->m_IPluginMap.erase(pluginConfig.name);
+    m_impl->m_PluginConfigMap.erase(pluginConfig.name);
     return true;
 }
 
 void PluginManager::UnloadPluginAll()
 {
-    for (auto& pluginConfig : m_impl->m_PluginConfigVec) {
+    for (auto& iter : m_impl->m_PluginConfigMap) {
+        PluginConfig& pluginConfig = iter.second;
         if (pluginConfig.isLoad) {
             UnloadPluginOne(pluginConfig);
         }
     }
 }
 
-std::vector<PluginConfig> PluginManager::GetPluginConfigVec()
+std::unordered_map<std::string, PluginConfig> PluginManager::GetPluginConfigMap()
 {
-    return m_impl->m_PluginConfigVec;
+    return m_impl->m_PluginConfigMap;
 }

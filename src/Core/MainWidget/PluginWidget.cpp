@@ -4,7 +4,7 @@
 #include "PluginWidget.h"
 
 struct PluginWidget::PluginWidgetPrivate {
-    std::vector<PluginConfig> m_PluginConfigVec;
+    std::unordered_map<std::string, PluginConfig> m_PluginConfigMap;
 };
 
 PluginWidget::PluginWidget(QWidget* parent)
@@ -42,17 +42,18 @@ void PluginWidget::Init()
     });
 }
 
-void PluginWidget::SlotShowTree(const std::vector<PluginConfig>& pluginConfigVec)
+void PluginWidget::SlotShowTree(const std::unordered_map<std::string, PluginConfig>& pluginConfigMap)
 {
-    m_impl->m_PluginConfigVec = pluginConfigVec;
-    for (auto pluginConfig : pluginConfigVec) {
-        QString group       = QString::fromStdString(pluginConfig.group);
-        bool    load        = pluginConfig.load;
-        QString name        = QString::fromStdString(pluginConfig.name);
-        bool    isLoad      = pluginConfig.isLoad;
-        QString error       = QString::fromStdString(pluginConfig.error);
-        QString version     = QString::fromStdString(pluginConfig.version);
-        QString description = QString::fromStdString(pluginConfig.description);
+    m_impl->m_PluginConfigMap = pluginConfigMap;
+    for (auto iter : m_impl->m_PluginConfigMap) {
+        auto    pluginConfig = iter.second;
+        QString group        = QString::fromStdString(pluginConfig.group);
+        bool    load         = pluginConfig.load;
+        QString name         = QString::fromStdString(pluginConfig.name);
+        bool    isLoad       = pluginConfig.isLoad;
+        QString error        = QString::fromStdString(pluginConfig.error);
+        QString version      = QString::fromStdString(pluginConfig.version);
+        QString description  = QString::fromStdString(pluginConfig.description);
 
         // 创建分组节点
         QTreeWidgetItem* topItem = this->SlotFindTopLevelNode(ui->treeWidget, group);
@@ -186,9 +187,10 @@ void PluginWidget::SlotUpdateParentItem(QTreeWidgetItem* item)
 
 void PluginWidget::SlotUpdatePluginConfig(const QString& name, bool load)
 {
-    for (auto& plugin : m_impl->m_PluginConfigVec) {
-        if (name.toStdString() == plugin.name) {
-            plugin.load = load;
+    for (auto& iter : m_impl->m_PluginConfigMap) {
+        PluginConfig& pluginConfig = iter.second;
+        if (name.toStdString() == pluginConfig.name) {
+            pluginConfig.load = load;
             return;
         }
     }
@@ -196,11 +198,12 @@ void PluginWidget::SlotUpdatePluginConfig(const QString& name, bool load)
 
 int PluginWidget::SlotGetPluginConfigLoad(const QString& name)
 {
-    for (auto& plugin : m_impl->m_PluginConfigVec) {
-        if (name.toStdString() == plugin.name) {
-            int load   = plugin.load ? 1 << 0 : 0;
-            int isLoad = plugin.isLoad ? 1 << 1 : 0;
-            return load + isLoad;
+    for (auto& iter : m_impl->m_PluginConfigMap) {
+        PluginConfig& pluginConfig = iter.second;
+        if (name.toStdString() == pluginConfig.name) {
+            int load   = pluginConfig.load ? 1 << 0 : 0;
+            int isLoad = pluginConfig.isLoad ? 1 << 1 : 0;
+            return load | isLoad;
         }
     }
     return 0;
@@ -218,7 +221,7 @@ void PluginWidget::SlotPushButtonOk()
             if (old_state != new_state) {
                 int ret = QMessageBox::information(this, "系统提示", "插件已修改，是否保存重启", QMessageBox::Yes | QMessageBox::No);
                 if (QMessageBox::Yes == ret) {
-                    emit SignalUpdatePluginConfigVec(m_impl->m_PluginConfigVec);
+                    emit SignalUpdatePluginConfigVec(m_impl->m_PluginConfigMap);
                     exit(0);
                 } else {
                     return;
