@@ -2,6 +2,8 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QTextEdit>
 
 #include <Manager/ConfigManager.h>
 #include <Manager/DataManager.h>
@@ -9,10 +11,12 @@
 
 #include "MainWindow.h"
 #include "PluginWidget.h"
+#include "Subscribe.h"
 
 struct MainWindow::MainWindowPrivate {
-    std::shared_ptr<Framework>    m_FrameworkSptr;    // 框架
-    std::shared_ptr<PluginWidget> m_PluginWidgetSptr; // 插件界面
+    std::shared_ptr<Framework>    m_FrameworkSptr;     // 框架
+    std::shared_ptr<PluginWidget> m_PluginWidgetSptr;  // 插件界面
+    QDockWidget*                  m_DockWidgetConsole; // 控制台输出
 };
 
 MainWindow::MainWindow(QWidget* parent)
@@ -27,12 +31,18 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    delete m_impl;
+    {
+        delete m_impl->m_DockWidgetConsole;
+        delete m_impl;
+    }
     delete ui;
 }
 
 void MainWindow::Init()
 {
+    setWindowTitle(tr("插件框架"));
+    setWindowIcon(QIcon(":/icons/framework.png"));
+
     // 获取屏幕信息
     QDesktopWidget* desktop = QApplication::desktop();
     resize(desktop->availableGeometry().size());
@@ -40,6 +50,7 @@ void MainWindow::Init()
 
     this->InitFramework();
     this->InitMenuBar();
+    this->InitDockWidget();
 }
 
 void MainWindow::InitFramework()
@@ -74,13 +85,13 @@ void MainWindow::InitMenuBar()
             QMenu*  page_menu = ui->menuBar->findChild<QMenu*>(page, Qt::FindDirectChildrenOnly);
             if (!page_menu) {
                 page_menu = new QMenu(page);
-				ui->menuBar->addMenu(page_menu);
+                ui->menuBar->addMenu(page_menu);
             }
             QString group      = QString::fromStdString(location.m_group);
             QMenu*  group_menu = page_menu->findChild<QMenu*>(group, Qt::FindDirectChildrenOnly);
             if (!group_menu) {
                 group_menu = new QMenu(group);
-				page_menu->addMenu(group_menu);
+                page_menu->addMenu(group_menu);
             }
             QString  name   = QString::fromStdString(location.m_name);
             QAction* action = new QAction(name);
@@ -90,4 +101,24 @@ void MainWindow::InitMenuBar()
             });
         }
     }
+}
+
+void MainWindow::InitDockWidget()
+{
+    // 悬浮窗
+    m_impl->m_DockWidgetConsole = new QDockWidget(this);
+    m_impl->m_DockWidgetConsole->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_impl->m_DockWidgetConsole->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    m_impl->m_DockWidgetConsole->setWindowTitle(tr("输出"));
+    this->addDockWidget(Qt::BottomDockWidgetArea, m_impl->m_DockWidgetConsole);
+
+    // 文本编辑器
+    QTextEdit* edit = new QTextEdit;
+    m_impl->m_DockWidgetConsole->setWidget(edit);
+
+	// 反馈信息
+    Subscribe* subscribe = new Subscribe;
+    connect(subscribe, &Subscribe::signal_log, this, [=](const QString& text) {
+        edit->append(text);
+    });
 }

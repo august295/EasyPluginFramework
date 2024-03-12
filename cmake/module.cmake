@@ -63,7 +63,10 @@ macro(CreateTarget ProjectName Type Group)
         # 生成可执行文件
         add_executable(${PROJECT_NAME}
             WIN32
-            ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
+            ${HEADER_FILES} ${SOURCE_FILES}
+            ${FORM_FILES} ${RESOURCE_FILES}
+            ${CURRENT_PATH}/app_win32.rc
+        )
         set_target_properties(${PROJECT_NAME} PROPERTIES
             DEBUG_POSTFIX "d"
             VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
@@ -108,13 +111,13 @@ macro(CreateTarget ProjectName Type Group)
                 NAMES ${library}d lib${library}d
                 PATHS ${${library}_ROOT}/lib)
             target_link_libraries(${PROJECT_NAME} ${lib})
-            unset(lib)
+            unset(lib CACHE)
         elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
             find_library(lib
                 NAMES ${library} lib${library}
                 PATHS ${${library}_ROOT}/lib)
             target_link_libraries(${PROJECT_NAME} ${lib})
-            unset(lib)
+            unset(lib CACHE)
         endif()
     endforeach()
 endmacro()

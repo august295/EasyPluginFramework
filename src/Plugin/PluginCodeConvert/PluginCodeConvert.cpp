@@ -11,12 +11,6 @@
 
 struct PluginCodeConvert::PluginCodeConvertPrivate {
     QMap<QString, QTextCodec*> codec_map;
-
-    PluginCodeConvertPrivate() {}
-    ~PluginCodeConvertPrivate()
-    {
-        codec_map.clear();
-    }
 };
 
 PluginCodeConvert::PluginCodeConvert(QWidget* parent)
@@ -29,10 +23,17 @@ PluginCodeConvert::PluginCodeConvert(QWidget* parent)
 
 PluginCodeConvert::~PluginCodeConvert()
 {
+    {
+        m_p->codec_map.clear();
+        delete m_p;
+    }
 }
 
 bool PluginCodeConvert::Init()
 {
+    setWindowTitle(tr("编码转换"));
+    setWindowIcon(QIcon(":/icons/convert.png"));
+
     this->InitWidget();
     return true;
 }
@@ -79,9 +80,9 @@ void PluginCodeConvert::InitWidget()
     ui->comboBox_lang_old->addItems(codec_list);
     ui->comboBox_lang_new->addItems(codec_list);
 
-	connect(ui->pushButton_add, &QPushButton::clicked, this, &PluginCodeConvert::slot_pushButton_add);
-	connect(ui->pushButton_delete, &QPushButton::clicked, this, &PluginCodeConvert::slot_pushButton_delete);
-	connect(ui->pushButton_convert, &QPushButton::clicked, this, &PluginCodeConvert::slot_pushButton_convert);
+    connect(ui->pushButton_add, &QPushButton::clicked, this, &PluginCodeConvert::slot_pushButton_add);
+    connect(ui->pushButton_delete, &QPushButton::clicked, this, &PluginCodeConvert::slot_pushButton_delete);
+    connect(ui->pushButton_convert, &QPushButton::clicked, this, &PluginCodeConvert::slot_pushButton_convert);
 }
 
 void PluginCodeConvert::slot_pushButton_add()
@@ -124,6 +125,7 @@ void PluginCodeConvert::slot_pushButton_convert()
         m_p->codec_map.insert(lang_new, codec_new);
     }
 
+    DataManager::instance()->Publish("log", QString("[%0 ==> %1]").arg(lang_old).arg(lang_new).toStdString());
     for (int i = 0; i < ui->listWidget->count(); ++i) {
         QString filename = ui->listWidget->item(i)->text();
         QFile   file(filename);
@@ -139,6 +141,7 @@ void PluginCodeConvert::slot_pushButton_convert()
             continue;
         }
         file_new.write(conten_new);
+        DataManager::instance()->Publish("log", QString("\t[%0] ==> [%1]").arg(filename).arg(filename + "_convert").toStdString());
     }
 }
 

@@ -6,6 +6,7 @@ elseif(CMAKE_CXX_PLATFORM_ID MATCHES "MinGW")
 elseif(CMAKE_CXX_PLATFORM_ID MATCHES "Linux")
     set(Protobuf_ROOT "")
 endif()
+
 set(CMAKE_PREFIX_PATH ${Protobuf_ROOT})
 
 macro(AddProtobufInc)
@@ -26,8 +27,10 @@ macro(AddProtobufLib)
     # add_compile_definitions(Protobuf_USE_STATIC_LIBS)
     add_compile_definitions(PROTOBUF_USE_DLLS)
     add_compile_definitions(PROTO_EXPORT=__declspec\(dllexport\))
+
+    # 如果设置了路径或者目标路径就可以只写库名，否则需要写全名
     target_link_libraries(${PROJECT_NAME} ${Protobuf_LIBRARIES})
 
-    get_filename_component(protobuf_dir ${Protobuf_PROTOC_EXECUTABLE} DIRECTORY)
-    file(COPY ${protobuf_dir}/libprotobufd.dll DESTINATION ${ROOT_DIR}/build/bin/)
+    # 拷贝 protobuf 动态库到 bin 目录
+    file(COPY ${Protobuf_ROOT}/bin/libprotobufd.dll DESTINATION ${ROOT_DIR}/build/bin/)
 endmacro()

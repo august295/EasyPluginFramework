@@ -21,16 +21,9 @@ public:
      * @brief 初始化
      */
     void Init();
-
-    /**
-     * @brief 初始化框架
-     */
     void InitFramework();
-
-    /**
-     * @brief 初始化菜单栏
-     */
     void InitMenuBar();
+	void InitDockWidget();
 
 public slots:
 
