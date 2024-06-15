@@ -1,3 +1,4 @@
+#include <QtCore/QProcess>
 #include <QtGui/QIcon>
 #include <QtWidgets/QMessageBox>
 
@@ -222,7 +223,9 @@ void PluginWidget::SlotPushButtonOk()
                 int ret = QMessageBox::information(this, "系统提示", "插件已修改，是否保存重启", QMessageBox::Yes | QMessageBox::No);
                 if (QMessageBox::Yes == ret) {
                     emit SignalUpdatePluginConfigVec(m_impl->m_PluginConfigMap);
-                    exit(0);
+                    // 重启应用程序
+                    qApp->quit();
+                    QProcess::startDetached(qApp->applicationFilePath(), QStringList());
                 } else {
                     return;
                 }
