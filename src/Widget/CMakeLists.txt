@@ -2,11 +2,9 @@
 include(${ROOT_DIR}/cmake/module.cmake)
 
 # Qt 库
-set(QT_LIBRARY_LIST "Core")
+set(QT_LIBRARY_LIST "Core" "Gui" "Widgets")
 # 链接库
 set(SELF_LIBRARY_LIST "Manager")
-# 预编译
-add_compile_definitions(PLUGINTEST_EXPORTS)
 
 # 创建项目
-CreateTarget("PluginTest" "Dll" "Plugin")
+CreateTarget("MainWidget" "Exe" "Widget")

@@ -9,4 +9,4 @@ build
 
 # thirdpart
 src/include/*
-!src/include/common
+!src/include/Common

@@ -1,7 +1,7 @@
 #ifndef __PluginCodeConvert_H__
 #define __PluginCodeConvert_H__
 
-#include <common/IPlugin.hpp>
+#include <Common/IPlugin.hpp>
 
 #include "GlobalCodeConvert.hpp"
 #include "ui_PluginCodeConvert.h"
