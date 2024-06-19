@@ -3,10 +3,8 @@
 
 #include <string>
 
-#if (__cplusplus < 201103L) || (__cplusplus >= 201703L)
-    #if defined(_WIN32) || defined(_WIN64)
-        #include <windows.h>
-
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
 static std::string gbk_to_utf8(const std::string& str_gbk)
 {
     int      utf16Length = ::MultiByteToWideChar(CP_ACP, 0, str_gbk.c_str(), -1, NULL, 0);
@@ -42,10 +40,10 @@ static std::string utf8_to_gbk(const std::string& str_utf8)
 
     return gbkString;
 }
-    #elif defined(linux) || defined(__linux) || defined(__linux__)
-        #include <iconv.h>
-        #include <iostream>
-std::string gbk_to_utf8(const std::string& str_gbk)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
+    #include <iconv.h>
+    #include <iostream>
+static std::string gbk_to_utf8(const std::string& str_gbk)
 {
     iconv_t cd = iconv_open("UTF-8", "GBK");
     if (cd == (iconv_t)-1) {
@@ -74,7 +72,7 @@ std::string gbk_to_utf8(const std::string& str_gbk)
     return utf8String;
 }
 
-std::string utf8_to_gbk(const std::string& str_utf8)
+static std::string utf8_to_gbk(const std::string& str_utf8)
 {
     iconv_t cd = iconv_open("GBK", "UTF-8");
     if (cd == (iconv_t)-1) {
@@ -101,29 +99,6 @@ std::string utf8_to_gbk(const std::string& str_utf8)
     delete[] outbuf;
 
     return gbkString;
-}
-    #endif
-#elif (__cplusplus >= 201103L) && (__cplusplus < 201703L)
-    #include <codecvt>
-    #include <locale>
-static std::string gbk_to_utf8(const std::string& str_gbk)
-{
-    const char*                                                         GBK_LOCALE_NAME = ".936";
-    std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> convert(new std::codecvt_byname<wchar_t, char, mbstate_t>(GBK_LOCALE_NAME));
-    std::wstring_convert<std::codecvt_utf8<wchar_t>>                    convert_utf8;
-
-    std::wstring tmp_wstr = convert.from_bytes(str_gbk);
-    return convert_utf8.to_bytes(tmp_wstr);
-}
-
-static std::string utf8_to_gbk(const std::string& str_utf8)
-{
-    const char*                                                         GBK_LOCALE_NAME = ".936";
-    std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> convert(new std::codecvt_byname<wchar_t, char, mbstate_t>(GBK_LOCALE_NAME));
-    std::wstring_convert<std::codecvt_utf8<wchar_t>>                    convert_utf8;
-
-    std::wstring tmp_wstr = convert_utf8.from_bytes(str_utf8);
-    return convert.to_bytes(tmp_wstr);
 }
 #endif
 

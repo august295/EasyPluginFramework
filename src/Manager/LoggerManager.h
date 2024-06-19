@@ -29,7 +29,7 @@ private:
 /**
  * @brief 定义宏，输出 __FILE__ __LINE__ __FUNCTION__
  */
-#define LOG_INFO(...)  SPDLOG_LOGGER_INFO(LoggerManager::instance()->GetLogger(), __VA_ARGS__)
-#define LOG_ERROR(...) SPDLOG_LOGGER_ERROR(LoggerManager::instance()->GetLogger(), __VA_ARGS__)
+#define LOG_INFO(...)  SPDLOG_LOGGER_INFO(LoggerManager::instance().GetLogger(), __VA_ARGS__)
+#define LOG_ERROR(...) SPDLOG_LOGGER_ERROR(LoggerManager::instance().GetLogger(), __VA_ARGS__)
 
 #endif

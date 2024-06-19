@@ -23,10 +23,8 @@ PluginCodeConvert::PluginCodeConvert(QWidget* parent)
 
 PluginCodeConvert::~PluginCodeConvert()
 {
-    {
-        m_p->codec_map.clear();
-        delete m_p;
-    }
+    m_p->codec_map.clear();
+    delete m_p;
 }
 
 bool PluginCodeConvert::Init()
@@ -125,7 +123,7 @@ void PluginCodeConvert::slot_pushButton_convert()
         m_p->codec_map.insert(lang_new, codec_new);
     }
 
-    DataManager::instance()->Publish("log", QString("[%0 ==> %1]").arg(lang_old).arg(lang_new).toStdString());
+    DataManager::instance().Publish("log", QString("[%0 ==> %1]").arg(lang_old).arg(lang_new).toStdString());
     for (int i = 0; i < ui->listWidget->count(); ++i) {
         QString filename = ui->listWidget->item(i)->text();
         QFile   file(filename);
@@ -141,7 +139,7 @@ void PluginCodeConvert::slot_pushButton_convert()
             continue;
         }
         file_new.write(conten_new);
-        DataManager::instance()->Publish("log", QString("\t[%0] ==> [%1]").arg(filename).arg(filename + "_convert").toStdString());
+        DataManager::instance().Publish("log", QString("\t[%0] ==> [%1]").arg(filename).arg(filename + "_convert").toStdString());
     }
 }
 

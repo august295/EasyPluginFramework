@@ -13,7 +13,7 @@ struct PluginManager::PluginManagerPrivate {
 PluginManager::PluginManager()
     : m_impl(std::make_shared<PluginManagerPrivate>())
 {
-    m_impl->m_PluginConfigFile = ConfigManager::instance()->GetBinPath() + "/../../resources/configs/plugins.xml";
+    m_impl->m_PluginConfigFile = ConfigManager::instance().GetBinPath() + "/../../resources/configs/plugins.xml";
 }
 
 PluginManager::~PluginManager()
@@ -56,7 +56,7 @@ bool PluginManager::WritePluginConfig(const std::unordered_map<std::string, Plug
         return false;
     }
 
-    for (auto iter : pluginConfigMap) {
+    for (const auto& iter : pluginConfigMap) {
         PluginConfig     pluginConfig = iter.second;
         std::string      node_path    = std::string("/Plugins/") + pluginConfig.group + "/" + pluginConfig.name;
         pugi::xpath_node node         = doc.select_node(pugi::xpath_query(node_path.c_str()));
@@ -72,7 +72,7 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 {
     std::string useName = GetSharedName(pluginConfig.name);
     // 加载动态库
-    std::string file   = ConfigManager::instance()->GetBinPath() + "/" + useName;
+    std::string file   = ConfigManager::instance().GetBinPath() + "/" + useName;
     LIB_HANDLE  handle = LIB_LOAD(file.c_str());
     if (!handle) {
         std::string error   = LIB_ERROR();

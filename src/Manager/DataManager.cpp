@@ -1,4 +1,11 @@
+#include <algorithm>
+#include <map>
+#include <mutex>
+
 #include "DataManager.h"
+
+// 显式实例化模板，确保单例实例在整个程序中唯一
+template class TSingleton<DataManager>;
 
 struct DataManager::DataManagerPrivate {
     std::map<std::string, std::vector<Callback>> m_CallbackMap;
@@ -7,8 +14,7 @@ struct DataManager::DataManagerPrivate {
 };
 
 DataManager::DataManager()
-    : TSingleton<DataManager>()
-    , m_P(new DataManagerPrivate)
+    : m_P(new DataManagerPrivate)
 {
     m_P->m_ThreadPoolSptr = std::make_shared<ThreadPool>(std::thread::hardware_concurrency() / 2);
 }
@@ -27,7 +33,7 @@ void DataManager::Subscribe(std::string name, Callback callback)
 void DataManager::Unsubscribe(std::string name, Callback callback)
 {
     std::unique_lock<std::mutex> lock(m_P->m_MutexCallback);
-    auto&                        iterMap = m_P->m_CallbackMap.find(name);
+    const auto&                  iterMap = m_P->m_CallbackMap.find(name);
     if (iterMap != m_P->m_CallbackMap.end()) {
         auto& callbackVec = iterMap->second;
         // 删除订阅的回调函数
@@ -46,7 +52,7 @@ void DataManager::Unsubscribe(std::string name, Callback callback)
 void DataManager::Publish(std::string name, const Easy::Any& data)
 {
     std::unique_lock<std::mutex> lock(m_P->m_MutexCallback);
-    auto&                        iterMap = m_P->m_CallbackMap.find(name);
+    const auto&                  iterMap = m_P->m_CallbackMap.find(name);
     if (iterMap != m_P->m_CallbackMap.end()) {
         for (auto& callback : iterMap->second) {
             // 单线程
@@ -58,7 +64,7 @@ void DataManager::Publish(std::string name, const Easy::Any& data)
 void DataManager::PublishDetach(std::string name, const Easy::Any& data)
 {
     std::unique_lock<std::mutex> lock(m_P->m_MutexCallback);
-    auto&                        iterMap = m_P->m_CallbackMap.find(name);
+    const auto&                  iterMap = m_P->m_CallbackMap.find(name);
     if (iterMap != m_P->m_CallbackMap.end()) {
         for (auto& callback : iterMap->second) {
             // 多线程分离
@@ -71,7 +77,7 @@ void DataManager::PublishDetach(std::string name, const Easy::Any& data)
 void DataManager::PublishAsync(std::string name, const Easy::Any& data, std::vector<std::future<void>>& futureVec)
 {
     std::unique_lock<std::mutex> lock(m_P->m_MutexCallback);
-    auto&                        iterMap = m_P->m_CallbackMap.find(name);
+    const auto&                  iterMap = m_P->m_CallbackMap.find(name);
     if (iterMap != m_P->m_CallbackMap.end()) {
         for (auto& callback : iterMap->second) {
             // 线程池

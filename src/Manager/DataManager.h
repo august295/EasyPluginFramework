@@ -2,8 +2,6 @@
 #define __DATAMANAGER_H__
 
 #include <functional>
-#include <map>
-#include <mutex>
 #include <string>
 #include <vector>
 

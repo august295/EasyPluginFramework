@@ -1,6 +1,7 @@
 #ifndef __PLUGINMANAGER_H__
 #define __PLUGINMANAGER_H__
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>

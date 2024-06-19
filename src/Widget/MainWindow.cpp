@@ -42,21 +42,17 @@ void MainWindow::Init()
 {
     setWindowTitle(tr("插件框架"));
     setWindowIcon(QIcon(":/icons/framework.png"));
-
-    // 获取屏幕信息
-    QDesktopWidget* desktop = QApplication::desktop();
-    resize(desktop->availableGeometry().size());
     showMaximized();
 
+    this->InitDockWidget();
     this->InitFramework();
     this->InitMenuBar();
-    this->InitDockWidget();
 }
 
 void MainWindow::InitFramework()
 {
     QString binPath = QApplication::applicationDirPath();
-    ConfigManager::instance()->SetBinPath(binPath.toStdString());
+    ConfigManager::instance().SetBinPath(binPath.toStdString());
 
     m_impl->m_FrameworkSptr = std::make_shared<Framework>();
     m_impl->m_FrameworkSptr->GetPluginManager()->ReadPluginConfig();
@@ -77,7 +73,7 @@ void MainWindow::InitMenuBar()
     });
 
     // 显示插件
-    for (auto iter : pluginConfigMap) {
+    for (const auto& iter : pluginConfigMap) {
         PluginConfig   pluginConfig = iter.second;
         PluginLocation location     = pluginConfig.location;
         if (pluginConfig.load && PluginType::WIDGET == location.m_type) {

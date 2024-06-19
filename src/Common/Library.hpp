@@ -47,22 +47,21 @@ inline const char* dlerrorMsg()
 /**
  * @brief 跨平台获取动态库全名
  */
-#if defined(_WIN32) || defined(_WIN64)
-    #define LIB_EXT    ".dll"
-    #define LIB_PREFIX ""
-    #ifdef _DEBUG
-        #define LIB_SUFFIX "d"
-    #else
-        #define LIB_SUFFIX ""
+#if defined(_WIN32)
+    #if defined(_MSC_VER)
+        #define LIB_PREFIX ""
+    #elif defined(__MINGW64__) || defined(__MINGW32__)
+        #define LIB_PREFIX "lib"
     #endif
+    #define LIB_EXT ".dll"
 #elif defined(__linux__)
-    #define LIB_EXT    ".so"
     #define LIB_PREFIX "lib"
-    #ifdef _DEBUG
-        #define LIB_SUFFIX "d"
-    #else
-        #define LIB_SUFFIX ""
-    #endif
+    #define LIB_EXT    ".so"
+#endif
+#if defined(_DEBUG) || defined(DEBUG) || !defined(NDEBUG)
+    #define LIB_SUFFIX "d"
+#else
+    #define LIB_SUFFIX ""
 #endif
 
 inline std::string GetSharedName(const std::string& baseName)

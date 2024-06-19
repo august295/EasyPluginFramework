@@ -12,6 +12,9 @@
  */
 class MANAGER_API ConfigManager : public TSingleton<ConfigManager> {
 public:
+    // 只允许使用单例模式，不允许创建对象
+    friend class TSingleton<ConfigManager>;
+    
     /**
      * @brief 设置可执行程序路径
      * @param binPath     可执行程序路径
@@ -25,8 +28,6 @@ public:
     std::string GetBinPath();
 
 private:
-    // 只允许使用单例模式，不允许创建对象
-    friend class TSingleton<ConfigManager>;
     ConfigManager();
     ~ConfigManager();
 
