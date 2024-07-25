@@ -80,13 +80,15 @@ void MainWindow::InitMenuBar()
             QString page      = QString::fromStdString(location.m_page);
             QMenu*  page_menu = ui->menuBar->findChild<QMenu*>(page, Qt::FindDirectChildrenOnly);
             if (!page_menu) {
-                page_menu = new QMenu(page);
+                page_menu = new QMenu(page, ui->menuBar);
+                page_menu->setObjectName(page);
                 ui->menuBar->addMenu(page_menu);
             }
             QString group      = QString::fromStdString(location.m_group);
             QMenu*  group_menu = page_menu->findChild<QMenu*>(group, Qt::FindDirectChildrenOnly);
             if (!group_menu) {
-                group_menu = new QMenu(group);
+                group_menu = new QMenu(group, page_menu);
+                group_menu->setObjectName(group);
                 page_menu->addMenu(group_menu);
             }
             QString  name   = QString::fromStdString(location.m_name);
@@ -112,7 +114,7 @@ void MainWindow::InitDockWidget()
     QTextEdit* edit = new QTextEdit;
     m_impl->m_DockWidgetConsole->setWidget(edit);
 
-	// 反馈信息
+    // 反馈信息
     Subscribe* subscribe = new Subscribe;
     connect(subscribe, &Subscribe::signal_log, this, [=](const QString& text) {
         edit->append(text);

@@ -31,7 +31,11 @@ git clone --recursive git@github.com:august295/EasyPluginFramework.git
 
 ### 2.2. 项目生成
 
-使用 `CMake` 创建工程。
+使用 `CMake` 创建工程。如果使用非 `Qt Creator` 打开工程，需要设置 `cmake/module_qt.cmake` 中 `qt` 的路径。
+
+```
+cmake -S"." -B"build" -G"Visual Studio 17 2022"
+```
 
 
 

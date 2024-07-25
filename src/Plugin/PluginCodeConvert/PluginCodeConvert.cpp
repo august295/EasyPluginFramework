@@ -3,7 +3,9 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QTextCodec>
+#include <QtGui/QIcon>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QPushButton>
 
 #include <Manager/DataManager.h>
 
@@ -54,7 +56,7 @@ std::string PluginCodeConvert::Version()
 
 std::string PluginCodeConvert::Description()
 {
-    return "测试插件";
+    return "编码转换";
 }
 
 std::string PluginCodeConvert::Icon()

@@ -12,6 +12,8 @@ macro(AddQtInc QtLibraryList)
     # 添加 qt include
     foreach(qt_library ${QtLibraryList})
         find_package(Qt5 COMPONENTS ${qt_library} REQUIRED)
+        message(${_qt5${qt_library}_install_prefix}/include)
+        include_directories(${_Qt5${qt_library}_OWN_INCLUDE_DIRS})
         include_directories(${Qt5${qt_library}_INCLUDE_DIRS})
         include_directories(${Qt5${qt_library}_PRIVATE_INCLUDE_DIRS})
     endforeach()
