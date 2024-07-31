@@ -54,10 +54,14 @@ macro(CreateTarget ProjectName Type Group)
             ${FORM_FILES} ${RESOURCE_FILES}
             ${CURRENT_PATH}/app_win32.rc
         )
-        set_target_properties(${ProjectName} PROPERTIES
-            DEBUG_POSTFIX "d"
-            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
-        )
+
+        foreach(CONFIGURATION_TYPE ${CONFIGURATION_TYPES})
+            if(CMAKE_BUILD_TYPE STREQUAL "${CONFIGURATION_TYPE}")
+                add_custom_command(TARGET ${ProjectName} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ROOT_DIR}/resources/" "${BUILD_DIR}/${CONFIGURATION_TYPE}/bin/"
+                )
+            endif()
+        endforeach()
     else()
         # 生成链接库
         if(${Type} STREQUAL "Lib")
@@ -66,6 +70,11 @@ macro(CreateTarget ProjectName Type Group)
             add_library(${ProjectName} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${FORM_FILES} ${RESOURCE_FILES})
         endif()
     endif()
+
+    set_target_properties(${ProjectName} PROPERTIES
+        DEBUG_POSTFIX "d"
+        VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+    )
 
     # 项目分组
     set_property(TARGET ${ProjectName} PROPERTY FOLDER ${Group})

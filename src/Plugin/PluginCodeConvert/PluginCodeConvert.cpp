@@ -3,7 +3,9 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QTextCodec>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QIcon>
+#include <QtGui/QScreen>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QPushButton>
 
@@ -31,6 +33,9 @@ PluginCodeConvert::~PluginCodeConvert()
 
 bool PluginCodeConvert::Init()
 {
+    QScreen* screen         = QGuiApplication::primaryScreen();
+    QRect    screenGeometry = screen->geometry();
+    resize(screenGeometry.width() / 2, screenGeometry.height() / 2);
     setWindowTitle(tr("编码转换"));
     setWindowIcon(QIcon(":/icons/convert.png"));
 

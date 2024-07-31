@@ -3,7 +3,9 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QTextCodec>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QIcon>
+#include <QtGui/QScreen>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QPushButton>
 
@@ -30,9 +32,11 @@ PluginBase64::~PluginBase64()
 
 bool PluginBase64::Init()
 {
+    QScreen* screen         = QGuiApplication::primaryScreen();
+    QRect    screenGeometry = screen->geometry();
+    resize(screenGeometry.width() / 2, screenGeometry.height() / 2);
     setWindowTitle(tr("图片Base64转换"));
     setWindowIcon(QIcon(":/icons/base64.png"));
-    resize(800, 800);
 
     this->InitWidget();
     return true;

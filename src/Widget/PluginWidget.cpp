@@ -1,5 +1,7 @@
 #include <QtCore/QProcess>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QIcon>
+#include <QtGui/QScreen>
 #include <QtWidgets/QMessageBox>
 
 #include "PluginWidget.h"
@@ -25,7 +27,9 @@ PluginWidget::~PluginWidget()
 
 void PluginWidget::Init()
 {
-    resize(qobject_cast<QWidget*>(parent())->size() / 2);
+    QScreen* screen         = QGuiApplication::primaryScreen();
+    QRect    screenGeometry = screen->geometry();
+    resize(screenGeometry.width() / 2, screenGeometry.height() / 2);
     // 设置界面属性
     setWindowFlags(Qt::Window);
     // 设置模态

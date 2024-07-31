@@ -13,7 +13,7 @@ struct PluginManager::PluginManagerPrivate {
 PluginManager::PluginManager()
     : m_impl(std::make_shared<PluginManagerPrivate>())
 {
-    m_impl->m_PluginConfigFile = ConfigManager::instance().GetBinPath() + "/../../resources/configs/plugins.xml";
+    m_impl->m_PluginConfigFile = ConfigManager::instance().GetBinPath() + "/configs/plugins.xml";
 }
 
 PluginManager::~PluginManager()
@@ -97,6 +97,7 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
         LIB_UNLOAD(handle);
         return false;
     }
+    pluginConfig.isLoad = true;
     pluginConfig.handle = handle;
 
     // 调用导出函数创建对象，并进行初始化

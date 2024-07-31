@@ -2,7 +2,8 @@
 cmake_minimum_required(VERSION 3.15.0)
 
 # 项目名称
-project(EasyPluginFramework)
+set(UseProjectName "EasyPluginFramework")
+project(${UseProjectName})
 
 # C++标准
 set(CMAKE_CXX_STANDARD 11)
@@ -21,20 +22,15 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakePredefinedTargets")
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BUILD_DIR ${ROOT_DIR}/build)
 
-# 输出目录
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/lib) # .lib and .a
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/lib) # .so and .dylib
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/bin) # .exe and .dll
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/lib) # .lib and .a
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/lib) # .so and .dylib
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin) # .exe and .dll
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUILD_DIR}/lib) # .lib and .a
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_DIR}/bin) # .so and .dylib
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/bin) # .exe and .dll
-endif()
-set(CMAKE_DEBUG_POSTFIX "d")
+# 为多种构建类型设置输出目录
+set(CONFIGURATION_TYPES "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+
+foreach(CONFIGURATION_TYPE ${CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIGURATION_TYPE} TYPE)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${TYPE} ${BUILD_DIR}/${CONFIGURATION_TYPE}/lib) # .lib and .a
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${TYPE} ${BUILD_DIR}/${CONFIGURATION_TYPE}/lib) # .so and .dylib
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${TYPE} ${BUILD_DIR}/${CONFIGURATION_TYPE}/bin) # .exe and .dll
+endforeach()
 
 # 三方库
 include(${ROOT_DIR}/cmake/module_spdlog.cmake)

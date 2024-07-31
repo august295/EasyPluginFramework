@@ -54,7 +54,7 @@
     </layout>
    </item>
    <item row="2" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1">
+    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1">
      <item>
       <widget class="QLabel" name="label_img">
        <property name="text">
