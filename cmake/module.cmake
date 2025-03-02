@@ -54,14 +54,6 @@ macro(CreateTarget ProjectName Type Group)
             ${FORM_FILES} ${RESOURCE_FILES}
             ${CURRENT_PATH}/app_win32.rc
         )
-
-        foreach(CONFIGURATION_TYPE ${CONFIGURATION_TYPES})
-            if(CMAKE_BUILD_TYPE STREQUAL "${CONFIGURATION_TYPE}")
-                add_custom_command(TARGET ${ProjectName} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ROOT_DIR}/resources/" "${BUILD_DIR}/${CONFIGURATION_TYPE}/bin/"
-                )
-            endif()
-        endforeach()
     else()
         # 生成链接库
         if(${Type} STREQUAL "Lib")

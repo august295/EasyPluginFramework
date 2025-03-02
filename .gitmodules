@@ -4,3 +4,6 @@
 [submodule "3rdparty/pugixml"]
 	path = 3rdparty/pugixml
 	url = git@github.com:zeux/pugixml.git
+[submodule "3rdparty/endecode"]
+	path = 3rdparty/endecode
+	url = git@github.com:august295/EnDeCode.git

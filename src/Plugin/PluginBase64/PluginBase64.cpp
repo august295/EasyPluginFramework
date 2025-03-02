@@ -65,7 +65,7 @@ std::string PluginBase64::Description()
 
 std::string PluginBase64::Icon()
 {
-    return "base64.img";
+    return "base64.png";
 }
 
 PluginLocation PluginBase64::Location()

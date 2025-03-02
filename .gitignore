@@ -6,7 +6,3 @@ build
 
 # VSCode Format
 .vscode
-
-# thirdpart
-src/include/*
-!src/include/Common

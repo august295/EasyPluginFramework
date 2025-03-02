@@ -4,5 +4,6 @@
 		<PluginTest load="true" />
 		<PluginCodeConvert load="true" />
         <PluginBase64 load="true" />
+        <PluginCertView load="true" />
 	</Test>
 </Plugins>
