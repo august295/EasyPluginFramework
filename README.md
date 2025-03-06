@@ -34,7 +34,10 @@ git clone --recursive git@github.com:august295/EasyPluginFramework.git
 使用 `CMake` 创建工程。如果使用非 `Qt Creator` 打开工程，需要设置 `cmake/module_qt.cmake` 中 `qt` 的路径。
 
 ```
-cmake -S"." -B"build" -G"Visual Studio 17 2022"
+# 默认 64 位
+cmake -B"build" -G"Visual Studio 17 2022"
+# 指定 32 位
+cmake -B"build" -G"Visual Studio 17 2022" -A"Win32" -D"QT_PATH=C:\\Qt\\5.15.2\\msvc2019"
 ```
 
 

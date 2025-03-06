@@ -120,7 +120,7 @@ std::string CertSM2Helper::GetCertInfo(size_t type)
     }
     else if (type == SGD_CERT_SIGNATURE_ALGORITHM)
     {
-        info = (char*)calloc(1, 64);
+        info = (char*)calloc(1, MAX_OID);
         oid_to_string(cert->tbsCertificate.signature.algorithm.value, cert->tbsCertificate.signature.algorithm.length, info);
         infoLen = strlen(info);
     }
@@ -128,7 +128,7 @@ std::string CertSM2Helper::GetCertInfo(size_t type)
     {
         Name        issuer = cert->tbsCertificate.issuer;
         std::string info_str;
-        char        temp[64] = {0};
+        char        temp[MAX_OID] = {0};
         for (size_t i = 0; i < issuer.count; i++)
         {
             for (size_t j = 0; j < issuer.names[i].count; j++)
@@ -202,7 +202,7 @@ std::string CertSM2Helper::GetCertInfo(size_t type)
     {
         Name        subject = cert->tbsCertificate.subject;
         std::string info_str;
-        char        temp[64] = {0};
+        char        temp[MAX_OID] = {0};
         for (size_t i = 0; i < subject.count; i++)
         {
             for (size_t j = 0; j < subject.names[i].count; j++)
@@ -235,6 +235,32 @@ std::string CertSM2Helper::GetCertInfo(size_t type)
     }
     else if (type == SGD_CERT_DER_PUBLIC_KEY)
     {
+        SubjectPublicKeyInfo subjectPublicKeyInfo = cert->tbsCertificate.subjectPublicKeyInfo;
+
+        std::string info_str;
+        char        temp[MAX_OID] = {0};
+        char        tempHex[3]    = {0};
+        oid_to_string(subjectPublicKeyInfo.algorithm.algorithm.value, subjectPublicKeyInfo.algorithm.algorithm.length, temp);
+        info_str += temp;
+        info_str += ";";
+        for (size_t i = 0; i < subjectPublicKeyInfo.subjectPublicKey.length; i++)
+        {
+            sprintf(tempHex, "%02X", subjectPublicKeyInfo.subjectPublicKey.value[i]);
+            if (i % 16)
+            {
+                info_str += std::string(tempHex) + " ";
+            }
+            else
+            {
+                if (i != 0)
+                {
+                    info_str += std::string(tempHex) + "\r\n";
+                }
+            }
+        }
+        infoLen = info_str.size();
+        info    = (char*)calloc(1, infoLen + 1);
+        memcpy(info, info_str.c_str(), info_str.size());
     }
     else if (type == SGD_CERT_DER_EXTENSIONS)
     {

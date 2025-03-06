@@ -49,7 +49,7 @@ bool PluginCertView::Init()
 {
     QScreen* screen         = QGuiApplication::primaryScreen();
     QRect    screenGeometry = screen->geometry();
-    resize(screenGeometry.width() / 2, screenGeometry.height() / 2);
+    resize(540, 660);
     setWindowTitle(tr("证书查看器"));
     setWindowIcon(QIcon(":/icons/cert.png"));
 
@@ -115,6 +115,7 @@ void PluginCertView::InitWidget()
     ui->label_signature_algorithm->setText("");
     ui->label_signature_value->setText("");
 
+    ui->tabWidget->setCurrentIndex(TAB_BASE);
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, [&](int index) {
         if (!m_p->m_certSM2Helper->IsParse())
         {
@@ -190,7 +191,9 @@ void PluginCertView::ShowTabDetail()
     std::string serialNumber = certSM2Helper->GetCertInfo(SGD_CERT_SERIAL);
     itemSerialNumber->setData(QString::fromStdString(serialNumber), Qt::UserRole);
 
-    QStandardItem* itemSignature = new QStandardItem(tr("签名算法"));
+    QStandardItem* itemSignature      = new QStandardItem(tr("签名算法"));
+    std::string    signatureAlgorithm = certSM2Helper->GetCertInfo(SGD_CERT_SIGNATURE_ALGORITHM);
+    itemSignature->setData(QString::fromStdString(signatureAlgorithm), Qt::UserRole);
     itemCert->appendRow(itemSignature);
 
     QStandardItem* itemIssuer = new QStandardItem(tr("颁发者"));
@@ -201,12 +204,34 @@ void PluginCertView::ShowTabDetail()
 
     QStandardItem* itemValidity = new QStandardItem(tr("有效期"));
     itemCert->appendRow(itemValidity);
+    QStandardItem* itemNotBefore = new QStandardItem(tr("不早于"));
+    std::string    notBefore     = certSM2Helper->GetCertInfo(SGD_CERT_NOTBEFORE_TIME);
+    QString        qNotBefore    = QString::fromStdString(notBefore);
+    itemNotBefore->setData(qNotBefore, Qt::UserRole);
+    itemValidity->appendRow(itemNotBefore);
+    QStandardItem* itemNotAfter = new QStandardItem(tr("不晚于"));
+    std::string    notAfter     = certSM2Helper->GetCertInfo(SGD_CERT_NOTAFTER_TIME);
+    QString        qNotAfter    = QString::fromStdString(notAfter);
+    itemNotAfter->setData(qNotAfter, Qt::UserRole);
+    itemValidity->appendRow(itemNotAfter);
 
     QStandardItem* itemSubject = new QStandardItem(tr("使用者"));
     itemCert->appendRow(itemSubject);
     std::string subject  = certSM2Helper->GetCertInfo(SGD_CERT_SUBJECT);
     QString     qSubject = QString::fromStdString(subject).replace(";", "\r\n");
     itemSubject->setData(qSubject, Qt::UserRole);
+
+    QStandardItem* itemSubjectPublicKeyInfo = new QStandardItem(tr("使用者公钥信息"));
+    itemCert->appendRow(itemSubjectPublicKeyInfo);
+    QStandardItem* itemSubjectPublicKeyAlgorithm = new QStandardItem(tr("使用者公钥算法"));
+    QStandardItem* itemSubjectPublicKey          = new QStandardItem(tr("使用者公钥"));
+    std::string    subjectPublicKeyInfo          = certSM2Helper->GetCertInfo(SGD_CERT_DER_PUBLIC_KEY);
+    QString        qSubjectPublicKeyAlgorithm    = QString::fromStdString(subjectPublicKeyInfo).split(";")[0];
+    QString        qSubjectPublicKey             = QString::fromStdString(subjectPublicKeyInfo).split(";")[1];
+    itemSubjectPublicKeyAlgorithm->setData(qSubjectPublicKeyAlgorithm, Qt::UserRole);
+    itemSubjectPublicKey->setData(qSubjectPublicKey, Qt::UserRole);
+    itemSubjectPublicKeyInfo->appendRow(itemSubjectPublicKeyAlgorithm);
+    itemSubjectPublicKeyInfo->appendRow(itemSubjectPublicKey);
 
     ui->treeView_field->setModel(m_p->m_modelField);
     ui->treeView_field->setHeaderHidden(true);

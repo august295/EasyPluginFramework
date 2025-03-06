@@ -1,12 +1,13 @@
 #ifndef __CERTSM2HELPER_H__
 #define __CERTSM2HELPER_H__
 
-#include "endecode/asn1/cert_sm2.h"
-#include "endecode/base64/base64.h"
-
 #include <map>
 #include <string>
 #include <vector>
+
+#include <endecode/asn1/cert_sm2.h>
+#include <endecode/asn1/gm_sof.h>
+#include <endecode/base64/base64.h>
 
 class CertSM2Helper
 {
