@@ -49,7 +49,7 @@ macro(CreateTarget ProjectName Type Group)
     if(${Type} STREQUAL "Exe")
         # 生成可执行文件
         add_executable(${ProjectName}
-            WIN32
+            # WIN32
             ${HEADER_FILES} ${SOURCE_FILES}
             ${FORM_FILES} ${RESOURCE_FILES}
             ${CURRENT_PATH}/app_win32.rc
@@ -79,5 +79,22 @@ macro(CreateTarget ProjectName Type Group)
     # 添加项目生成的链接库
     foreach(library ${SELF_LIBRARY_LIST})
         target_link_libraries(${ProjectName} ${library})
+    endforeach()
+endmacro()
+
+# 添加头文件和链接库路径
+macro(AddLibrary LibraryList)
+    foreach(library ${LibraryList})
+        # 添加 include
+        include_directories(${ROOT_DIR}/3rdparty/${library})
+        include_directories(${ROOT_DIR}/3rdparty/${library}/include)
+        # 添加链接库路径
+        if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+            if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+                link_directories(${ROOT_DIR}/3rdparty/${library}/lib/win32/${CMAKE_BUILD_TYPE})
+            else()
+                link_directories(${ROOT_DIR}/3rdparty/${library}/lib/win64/${CMAKE_BUILD_TYPE})
+            endif()
+        endif()
     endforeach()
 endmacro()

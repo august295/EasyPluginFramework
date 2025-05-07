@@ -5,12 +5,14 @@
 #include "ui_MainWindow.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
+namespace Ui
+{
     class MainWindowClass;
 };
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
@@ -23,7 +25,9 @@ public:
     void Init();
     void InitFramework();
     void InitMenuBar();
-	void InitDockWidget();
+    void AddMenuAction(const QString& page, const QString& group, const QString& name, QWidget* widget);
+    void InitMenuBarPlugin();
+    void InitDockWidget();
 
 public slots:
 

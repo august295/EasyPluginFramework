@@ -12,11 +12,14 @@
 #include "MainWindow.h"
 #include "PluginWidget.h"
 #include "Subscribe.h"
+#include "CertView/CertView.h"
 
-struct MainWindow::MainWindowPrivate {
+struct MainWindow::MainWindowPrivate
+{
     std::shared_ptr<Framework>    m_FrameworkSptr;     // 框架
     std::shared_ptr<PluginWidget> m_PluginWidgetSptr;  // 插件界面
     QDockWidget*                  m_DockWidgetConsole; // 控制台输出
+    QMap<QString, QWidget*>        m_MenuWidgetMap;     //
 };
 
 MainWindow::MainWindow(QWidget* parent)
@@ -47,6 +50,7 @@ void MainWindow::Init()
     this->InitDockWidget();
     this->InitFramework();
     this->InitMenuBar();
+    this->InitMenuBarPlugin();
 }
 
 void MainWindow::InitFramework()
@@ -61,6 +65,37 @@ void MainWindow::InitFramework()
 
 void MainWindow::InitMenuBar()
 {
+    // openssl 证书查看器
+    CertView* certView = new CertView();
+    AddMenuAction("工具", "证书", "openssl证书查看器", certView);
+    m_impl->m_MenuWidgetMap.insert("opensslCertView", certView);
+}
+
+void MainWindow::AddMenuAction(const QString& page, const QString& group, const QString& name, QWidget* widget)
+{
+    QMenu* page_menu = ui->menuBar->findChild<QMenu*>(page, Qt::FindDirectChildrenOnly);
+    if (!page_menu)
+    {
+        page_menu = new QMenu(page, ui->menuBar);
+        page_menu->setObjectName(page);
+        ui->menuBar->addMenu(page_menu);
+    }
+    QMenu* group_menu = page_menu->findChild<QMenu*>(group, Qt::FindDirectChildrenOnly);
+    if (!group_menu)
+    {
+        group_menu = new QMenu(group, page_menu);
+        group_menu->setObjectName(group);
+        page_menu->addMenu(group_menu);
+    }
+    QAction* action = new QAction(name);
+    group_menu->addAction(action);
+    connect(action, &QAction::triggered, this, [=]() {
+        widget->show();
+    });
+}
+
+void MainWindow::InitMenuBarPlugin()
+{
     auto pluginConfigMap = m_impl->m_FrameworkSptr->GetPluginManager()->GetPluginConfigMap();
     // 插件加载情况界面
     m_impl->m_PluginWidgetSptr = std::make_shared<PluginWidget>(this);
@@ -73,20 +108,24 @@ void MainWindow::InitMenuBar()
     });
 
     // 显示插件
-    for (const auto& iter : pluginConfigMap) {
+    for (const auto& iter : pluginConfigMap)
+    {
         PluginConfig   pluginConfig = iter.second;
         PluginLocation location     = pluginConfig.location;
-        if (pluginConfig.load && PluginType::WIDGET == location.m_type) {
+        if (pluginConfig.load && PluginType::WIDGET == location.m_type)
+        {
             QString page      = QString::fromStdString(location.m_page);
             QMenu*  page_menu = ui->menuBar->findChild<QMenu*>(page, Qt::FindDirectChildrenOnly);
-            if (!page_menu) {
+            if (!page_menu)
+            {
                 page_menu = new QMenu(page, ui->menuBar);
                 page_menu->setObjectName(page);
                 ui->menuBar->addMenu(page_menu);
             }
             QString group      = QString::fromStdString(location.m_group);
             QMenu*  group_menu = page_menu->findChild<QMenu*>(group, Qt::FindDirectChildrenOnly);
-            if (!group_menu) {
+            if (!group_menu)
+            {
                 group_menu = new QMenu(group, page_menu);
                 group_menu->setObjectName(group);
                 page_menu->addMenu(group_menu);

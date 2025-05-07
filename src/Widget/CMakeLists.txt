@@ -5,6 +5,11 @@ include(${ROOT_DIR}/cmake/module.cmake)
 set(QT_LIBRARY_LIST "Core" "Gui" "Widgets")
 # 链接库
 set(SELF_LIBRARY_LIST "Manager")
+set(LibraryList "openssl")
+AddLibrary("${LibraryList}")
 
 # 创建项目
-CreateTarget("MainWidget" "Exe" "Widget")
+set(ProjectName "MainWidget")
+CreateTarget(${ProjectName} "Exe" "Widget")
+
+target_link_libraries(${ProjectName} "libssl" "libcrypto")

@@ -21,6 +21,7 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakePredefinedTargets")
 # 设置根目录
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BUILD_DIR ${CMAKE_BINARY_DIR})
+set(CMAKE_BUILD_TYPE "Debug")
 
 # 为多种构建类型设置输出目录
 set(CONFIGURATION_TYPES "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
@@ -47,9 +48,20 @@ include(${ROOT_DIR}/cmake/module.cmake)
 add_subdirectory(src)
 
 # 拷贝资源文件
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+        set(RESOURCES_PATH "win32")
+    else()
+        set(RESOURCES_PATH "win64")
+    endif()
+else()
+    message(FATAL_ERROR "Unsupported host system: ${CMAKE_HOST_SYSTEM_NAME}")
+endif()
+
 add_custom_target(
     "${UseProjectName}CopyTask" ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${ROOT_DIR}/resources/" "${BUILD_DIR}/bin/"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ROOT_DIR}/3rdparty/openssl/lib/${RESOURCES_PATH}/${CMAKE_BUILD_TYPE}" "${BUILD_DIR}/bin/"
     COMMENT "Copying resources"
 )
 set_property(TARGET "${UseProjectName}CopyTask" PROPERTY FOLDER "CMakePredefinedTargets")
