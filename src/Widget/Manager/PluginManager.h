@@ -10,8 +10,6 @@
 #include <Common/Library.hpp>
 #include <Common/Utils.hpp>
 
-#include "GlobalManager.hpp"
-
 struct PluginConfig {
     std::string    group;       // 分组
     bool           load;        // 是否加载
@@ -28,7 +26,7 @@ struct PluginConfig {
 /**
  * @brief 插件管理
  */
-class MANAGER_API PluginManager
+class PluginManager
 {
 public:
     PluginManager();

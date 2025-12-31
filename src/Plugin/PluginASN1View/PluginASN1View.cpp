@@ -13,8 +13,6 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 
-#include <Manager/DataManager.h>
-
 #include "CertSM2Helper.h"
 #include "PluginASN1View.h"
 

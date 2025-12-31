@@ -1,6 +1,7 @@
 #include <QApplication>
 
 #include "MainWindow.h"
+#include "Subscribe.h"
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
@@ -12,8 +13,13 @@ int main(int argc, char* argv[])
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 #endif
-     QApplication a(argc, argv);
-     MainWindow   w;
-     w.show();
-     return a.exec();
+
+    // 单例
+    Subscribe::instance();
+
+    // 界面
+    QApplication a(argc, argv);
+    MainWindow   w;
+    w.show();
+    return a.exec();
 }

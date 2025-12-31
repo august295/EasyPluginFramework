@@ -2,12 +2,15 @@
 #define __PLUGINBASE64_H__
 
 #include <Common/IPlugin.hpp>
+#include <Core/EventBus/IEventHandler.hpp>
+#include <Core/EventBus/IEventBus.hpp>
 
 #include "GlobalPluginBase64.hpp"
 #include "ui_PluginBase64.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
+namespace Ui
+{
     class PluginBase64Class;
 };
 QT_END_NAMESPACE
@@ -19,6 +22,7 @@ QT_END_NAMESPACE
 class PLUGINBASE64_API PluginBase64
     : public QWidget
     , public IPlugin
+    , public IEventHandler
 {
     Q_OBJECT
 
@@ -42,6 +46,12 @@ public:
 
     void WidgetShow() override;
 
+    void OnEvent(const Event* event) override;
+
+private:
+    IEventBus* m_eventBus;
+
+private:
     /**
      * 内部函数
      */
@@ -55,9 +65,6 @@ public slots:
 
 private:
     Ui::PluginBase64Class* ui;
-
-    struct PluginBase64Private;
-    PluginBase64Private* m_p;
 };
 
 #endif

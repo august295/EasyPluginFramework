@@ -49,7 +49,7 @@ macro(CreateTarget ProjectName Type Group)
     if(${Type} STREQUAL "Exe")
         # 生成可执行文件
         add_executable(${ProjectName}
-            # WIN32
+            WIN32
             ${HEADER_FILES} ${SOURCE_FILES}
             ${FORM_FILES} ${RESOURCE_FILES}
             ${CURRENT_PATH}/app_win32.rc

@@ -454,7 +454,7 @@ bool CertX509Helper::buildChain()
         X509_STORE_free(store);
         return false;
     }
-    LoadIntermediateCerts(store, "D:\\Github\\EasyPluginFramework\\build\\bin\\certs");
+    LoadIntermediateCerts(store, "certs");
 
 #ifdef _WIN32
     if (!LoadSystemRootCerts(store))

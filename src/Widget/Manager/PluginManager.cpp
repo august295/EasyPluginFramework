@@ -1,7 +1,6 @@
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 
-#include "ConfigManager.h"
 #include "LoggerManager.h"
 #include "PluginManager.h"
 
@@ -13,7 +12,7 @@ struct PluginManager::PluginManagerPrivate {
 PluginManager::PluginManager()
     : m_impl(std::make_shared<PluginManagerPrivate>())
 {
-    m_impl->m_PluginConfigFile = ConfigManager::instance().GetBinPath() + "/configs/plugins.xml";
+    m_impl->m_PluginConfigFile = "configs/plugins.xml";
 }
 
 PluginManager::~PluginManager()
@@ -72,7 +71,7 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 {
     std::string useName = GetSharedName(pluginConfig.name);
     // 加载动态库
-    std::string file   = ConfigManager::instance().GetBinPath() + "/" + useName;
+    std::string file   = useName;
     LIB_HANDLE  handle = LIB_LOAD(file.c_str());
     if (!handle) {
         std::string error   = LIB_ERROR();

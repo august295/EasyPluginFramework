@@ -1,9 +1,8 @@
-#include <Manager/DataManager.h>
-
 #include "PluginTest.h"
 
 PluginTest::PluginTest()
 {
+    m_eventBus = nullptr;
 }
 
 PluginTest::~PluginTest()
@@ -12,19 +11,8 @@ PluginTest::~PluginTest()
 
 bool PluginTest::Init()
 {
-    // 测试单线程
-    DataManager::instance().Publish("int", 10);
-
-    // 测试多线程
-    DataManager::instance().PublishDetach("int", 10);
-
-    // 测试线程池
-    std::vector<std::future<void>> futureVec;
-    DataManager::instance().PublishAsync("int", 10, futureVec);
-    for (auto&& f : futureVec) {
-        f.wait();
-    }
-
+    m_eventBus = GetEventBus();
+    m_eventBus->subscribe("test", this);
     return true;
 }
 
@@ -61,6 +49,26 @@ PluginLocation PluginTest::Location()
 
 void PluginTest::WidgetShow()
 {
+}
+
+void PluginTest::OnEvent(const Event* event)
+{
+    switch (event->type)
+    {
+    case ET_MESSAGE:
+    {
+        const MessageEvent* me = dynamic_cast<const MessageEvent*>(event);
+        printf("%s\n", me->message.c_str());
+    }
+    case ET_LOG:
+    {
+        const MessageEvent* me = dynamic_cast<const MessageEvent*>(event);
+        printf("%s\n", me->message.c_str());
+    }
+    break;
+    default:
+        break;
+    }
 }
 
 // 插件创建函数

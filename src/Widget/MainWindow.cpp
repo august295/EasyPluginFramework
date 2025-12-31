@@ -5,10 +5,6 @@
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QTextEdit>
 
-#include <Manager/ConfigManager.h>
-#include <Manager/DataManager.h>
-#include <Manager/Framework.h>
-
 #include "MainWindow.h"
 #include "PluginWidget.h"
 #include "Subscribe.h"
@@ -16,9 +12,9 @@
 
 struct MainWindow::MainWindowPrivate
 {
-    std::shared_ptr<Framework>    m_FrameworkSptr;     // 框架
-    std::shared_ptr<PluginWidget> m_PluginWidgetSptr;  // 插件界面
-    QDockWidget*                  m_DockWidgetConsole; // 控制台输出
+    std::shared_ptr<PluginManager> m_PluginManager;     // 插件管理
+    std::shared_ptr<PluginWidget>  m_PluginWidgetSptr;  // 插件界面
+    QDockWidget*                   m_DockWidgetConsole; // 控制台输出
     QMap<QString, QWidget*>        m_MenuWidgetMap;     //
 };
 
@@ -55,12 +51,9 @@ void MainWindow::Init()
 
 void MainWindow::InitFramework()
 {
-    QString binPath = QApplication::applicationDirPath();
-    ConfigManager::instance().SetBinPath(binPath.toStdString());
-
-    m_impl->m_FrameworkSptr = std::make_shared<Framework>();
-    m_impl->m_FrameworkSptr->GetPluginManager()->ReadPluginConfig();
-    m_impl->m_FrameworkSptr->GetPluginManager()->LoadPluginAll();
+    m_impl->m_PluginManager = std::make_shared<PluginManager>();
+    m_impl->m_PluginManager->ReadPluginConfig();
+    m_impl->m_PluginManager->LoadPluginAll();
 }
 
 void MainWindow::InitMenuBar()
@@ -96,12 +89,12 @@ void MainWindow::AddMenuAction(const QString& page, const QString& group, const 
 
 void MainWindow::InitMenuBarPlugin()
 {
-    auto pluginConfigMap = m_impl->m_FrameworkSptr->GetPluginManager()->GetPluginConfigMap();
+    auto pluginConfigMap = m_impl->m_PluginManager->GetPluginConfigMap();
     // 插件加载情况界面
     m_impl->m_PluginWidgetSptr = std::make_shared<PluginWidget>(this);
     m_impl->m_PluginWidgetSptr->SlotShowTree(pluginConfigMap);
     connect(m_impl->m_PluginWidgetSptr.get(), &PluginWidget::SignalUpdatePluginConfigVec, this, [&](const std::unordered_map<std::string, PluginConfig>& pluginConfigMap) {
-        m_impl->m_FrameworkSptr->GetPluginManager()->WritePluginConfig(pluginConfigMap);
+        m_impl->m_PluginManager->WritePluginConfig(pluginConfigMap);
     });
     connect(ui->action_Plugin, &QAction::triggered, this, [&]() {
         m_impl->m_PluginWidgetSptr->show();
@@ -154,8 +147,7 @@ void MainWindow::InitDockWidget()
     m_impl->m_DockWidgetConsole->setWidget(edit);
 
     // 反馈信息
-    Subscribe* subscribe = new Subscribe;
-    connect(subscribe, &Subscribe::signal_log, this, [=](const QString& text) {
+    connect(&Subscribe::instance(), &Subscribe::signal_log, this, [=](const QString& text) {
         edit->append(text);
     });
 }

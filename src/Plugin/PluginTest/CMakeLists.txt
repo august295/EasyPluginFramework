@@ -4,7 +4,7 @@ include(${ROOT_DIR}/cmake/module.cmake)
 # Qt 库
 set(QT_LIBRARY_LIST "Core")
 # 链接库
-set(SELF_LIBRARY_LIST "Manager")
+set(SELF_LIBRARY_LIST "EventBus")
 # 预编译
 add_compile_definitions(PLUGINTEST_EXPORTS)
 

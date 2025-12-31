@@ -1,10 +1,16 @@
 ﻿# 引入外部函数
 include(${ROOT_DIR}/cmake/module.cmake)
 
+# 头文件
+include_directories(${ROOT_DIR}/3rdparty/spdlog/include)
+add_compile_definitions(PUGIXML_HEADER_ONLY)
+include_directories(${ROOT_DIR}/3rdparty/pugixml/src)
+
 # Qt 库
 set(QT_LIBRARY_LIST "Core" "Gui" "Widgets")
 # 链接库
-set(SELF_LIBRARY_LIST "Manager")
+set(SELF_LIBRARY_LIST "EventBus")
+# 链接库
 set(LibraryList "openssl")
 AddLibrary("${LibraryList}")
 

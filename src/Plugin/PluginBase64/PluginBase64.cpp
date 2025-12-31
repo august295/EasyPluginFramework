@@ -9,29 +9,25 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QPushButton>
 
-#include <Manager/DataManager.h>
-
 #include "Base64Helper.h"
 #include "PluginBase64.h"
-
-struct PluginBase64::PluginBase64Private {
-};
 
 PluginBase64::PluginBase64(QWidget* parent)
     : QWidget(parent)
     , ui(new Ui::PluginBase64Class())
-    , m_p(new PluginBase64Private)
 {
+    m_eventBus = nullptr;
     ui->setupUi(this);
 }
 
 PluginBase64::~PluginBase64()
 {
-    delete m_p;
 }
 
 bool PluginBase64::Init()
 {
+    m_eventBus = GetEventBus();
+
     QScreen* screen         = QGuiApplication::primaryScreen();
     QRect    screenGeometry = screen->geometry();
     resize(screenGeometry.width() / 2, screenGeometry.height() / 2);
@@ -78,6 +74,20 @@ void PluginBase64::WidgetShow()
     show();
 }
 
+void PluginBase64::OnEvent(const Event* event)
+{
+    switch (event->type)
+    {
+    case ET_MESSAGE: {
+        const MessageEvent* me = dynamic_cast<const MessageEvent*>(event);
+        printf("%s\n", me->message.c_str());
+    }
+    break;
+    default:
+        break;
+    }
+}
+
 void PluginBase64::InitWidget()
 {
     connect(ui->pushButton_open, &QPushButton::clicked, this, &PluginBase64::slot_pushButton_open_clicked);
@@ -88,8 +98,9 @@ void PluginBase64::InitWidget()
 
 void PluginBase64::slot_pushButton_open_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "选择文件", "", "图片(*.img *.bmp *.jpg)");
-    if (!fileName.isEmpty()) {
+    QString fileName = QFileDialog::getOpenFileName(this, "选择文件", "", "图片(*.img *.bmp *.jpg *.png)");
+    if (!fileName.isEmpty())
+    {
         ui->lineEdit_img->setText(fileName);
         QPixmap pix(fileName);
         pix = pix.scaled(ui->label_img->size() - QSize(4, 4), Qt::KeepAspectRatio);
@@ -100,20 +111,24 @@ void PluginBase64::slot_pushButton_open_clicked()
 void PluginBase64::slot_pushButton_img_to_base64_clicked()
 {
     QString fileName = ui->lineEdit_img->text().trimmed();
-    if (fileName.isEmpty()) {
+    if (fileName.isEmpty())
+    {
         return;
     }
 
     QImage  image(fileName);
     QString text = Base64Helper::imageToBase64(image);
     ui->textEdit_base64->setText(text);
-    DataManager::instance().Publish("log", QString("[%1 转换为 Base64]").arg(fileName).toStdString());
+
+    auto record = QString("[%1 转换为 Base64]").arg(fileName).toStdString();
+    m_eventBus->publish("log", new MessageEvent(0, ET_LOG, record));
 }
 
 void PluginBase64::slot_pushButton_base64_to_img_clicked()
 {
     QString text = ui->textEdit_base64->toPlainText().trimmed();
-    if (text.isEmpty()) {
+    if (text.isEmpty())
+    {
         return;
     }
 
@@ -121,7 +136,9 @@ void PluginBase64::slot_pushButton_base64_to_img_clicked()
     QPixmap pix   = QPixmap::fromImage(image);
     pix           = pix.scaled(ui->label_img->size() - QSize(4, 4), Qt::KeepAspectRatio);
     ui->label_img->setPixmap(pix);
-    DataManager::instance().Publish("log", QString("[Base64 转换为图片]").toStdString());
+
+    auto record = QString("[Base64 转换为图片]").toStdString();
+    m_eventBus->publish("log", new MessageEvent(0, ET_LOG, record));
 }
 
 void PluginBase64::slot_pushButton_clear_clicked()
