@@ -14,7 +14,8 @@
 /**
  * @brief 插件类型
  */
-enum class PluginType {
+enum class PluginType
+{
     NONE,
     WIDGET,
 };
@@ -22,7 +23,8 @@ enum class PluginType {
 /**
  * @brief 插件显示位置
  */
-struct PluginLocation {
+struct PluginLocation
+{
     PluginType  m_type;
     std::string m_name;
     std::string m_group;
@@ -67,6 +69,12 @@ public:
      * @return std::string 插件版本
      */
     virtual std::string Version() = 0;
+
+    /**
+     * @brief 获取插件版本
+     * @return std::string 插件版本
+     */
+    virtual std::string Name() = 0;
 
     /**
      * @brief 获取插件描述

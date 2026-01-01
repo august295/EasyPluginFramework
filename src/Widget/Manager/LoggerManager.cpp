@@ -1,21 +1,30 @@
 #include "LoggerManager.h"
 
-// 显式实例化模板，确保单例实例在整个程序中唯一
-template class TSingleton<LoggerManager>;
-
 LoggerManager::LoggerManager()
 {
-    // 输出日志格式（全局）
-    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] [%s:%#]: %v");
-    // 使用当前时间动态生成日志文件名
-    m_logger = spdlog::basic_logger_mt("logger_basic_mt", "logs/log.txt");
+    // 总日志
+    auto console    = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto all_file   = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("logs/all.log", 50 * 1024 * 1024, 10);
+    auto all_logger = std::make_shared<spdlog::logger>("all", spdlog::sinks_init_list{console, all_file});
+    all_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%t] [%^%l%$] [%s:%# %!] %v");
+    all_logger->set_level(spdlog::level::info);
+    all_logger->flush_on(spdlog::level::warn);
+    spdlog::register_logger(all_logger);
+    spdlog::set_default_logger(all_logger);
+    // 插件日志
+    auto plugin_file   = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("logs/plugin.log", 50 * 1024 * 1024, 10);
+    auto plugin_logger = std::make_shared<spdlog::logger>("plugin", spdlog::sinks_init_list{console, plugin_file});
+    spdlog::register_logger(plugin_logger);
+    // 定时刷新
+    spdlog::flush_every(std::chrono::seconds(5));
 }
 
 LoggerManager::~LoggerManager()
 {
+    spdlog::shutdown();
 }
 
-std::shared_ptr<spdlog::logger> LoggerManager::GetLogger()
+std::shared_ptr<spdlog::logger> LoggerManager::GetLogger(const std::string& loggerName)
 {
-    return m_logger;
+    return spdlog::get(loggerName);
 }

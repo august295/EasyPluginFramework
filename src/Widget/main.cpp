@@ -2,6 +2,7 @@
 
 #include "MainWindow.h"
 #include "Subscribe.h"
+#include "Manager/LoggerManager.h"
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
@@ -16,6 +17,7 @@ int main(int argc, char* argv[])
 
     // 单例
     Subscribe::instance();
+    LoggerManager::instance();
 
     // 界面
     QApplication a(argc, argv);

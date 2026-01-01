@@ -1,4 +1,5 @@
 #include "Subscribe.h"
+#include "Manager/LoggerManager.h"
 
 Subscribe& Subscribe::instance()
 {
@@ -23,12 +24,14 @@ void Subscribe::OnEvent(const Event* event)
     {
     case ET_MESSAGE: {
         const MessageEvent* me = dynamic_cast<const MessageEvent*>(event);
-        emit                signal_log(QString::fromStdString(me->message));
+        emit                signal_log(QString("[%1] %2").arg(me->name.c_str()).arg(me->message.c_str()));
+        LoggerManager::instance().GetLogger("plugin")->info("[{}] {}", me->name, me->message);
     }
     break;
     case ET_LOG: {
-        const MessageEvent* me = dynamic_cast<const MessageEvent*>(event);
-        emit                signal_log(QString::fromStdString(me->message));
+        const LogEvent* le = dynamic_cast<const LogEvent*>(event);
+        emit            signal_log(QString("[%1] %2").arg(le->name.c_str()).arg(le->log.c_str()));
+        LoggerManager::instance().GetLogger("plugin")->info("[{}] [{}:{} {}] {}", le->name, le->file, le->line, le->function, le->log);
     }
     break;
     default:

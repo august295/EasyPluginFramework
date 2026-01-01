@@ -26,6 +26,8 @@ public:
 
     std::string Version() override;
 
+    std::string Name() override;
+
     std::string Description() override;
 
     std::string Icon() override;

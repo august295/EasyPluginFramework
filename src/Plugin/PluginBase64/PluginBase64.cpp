@@ -40,6 +40,8 @@ bool PluginBase64::Init()
 
 bool PluginBase64::InitAppFinish()
 {
+    std::string record = "插件初始化完成";
+    m_eventBus->publish("log", new LogEvent(0, ET_LOG, Name(), __FILE__, __LINE__, __FUNCTION__, record));
     return true;
 }
 
@@ -52,6 +54,11 @@ bool PluginBase64::Release()
 std::string PluginBase64::Version()
 {
     return "0.0.1";
+}
+
+std::string PluginBase64::Name()
+{
+    return "PluginBase64";
 }
 
 std::string PluginBase64::Description()
@@ -120,8 +127,8 @@ void PluginBase64::slot_pushButton_img_to_base64_clicked()
     QString text = Base64Helper::imageToBase64(image);
     ui->textEdit_base64->setText(text);
 
-    auto record = QString("[%1 转换为 Base64]").arg(fileName).toStdString();
-    m_eventBus->publish("log", new MessageEvent(0, ET_LOG, record));
+    auto record = QString("%1 转换为 Base64").arg(fileName).toStdString();
+    m_eventBus->publish("log", new LogEvent(0, ET_LOG, Name(), __FILE__, __LINE__, __FUNCTION__, record));
 }
 
 void PluginBase64::slot_pushButton_base64_to_img_clicked()
@@ -137,8 +144,8 @@ void PluginBase64::slot_pushButton_base64_to_img_clicked()
     pix           = pix.scaled(ui->label_img->size() - QSize(4, 4), Qt::KeepAspectRatio);
     ui->label_img->setPixmap(pix);
 
-    auto record = QString("[Base64 转换为图片]").toStdString();
-    m_eventBus->publish("log", new MessageEvent(0, ET_LOG, record));
+    auto record = QString("Base64 转换为图片").toStdString();
+    m_eventBus->publish("log", new LogEvent(0, ET_LOG, Name(), __FILE__, __LINE__, __FUNCTION__, record));
 }
 
 void PluginBase64::slot_pushButton_clear_clicked()
