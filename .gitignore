@@ -1,8 +1,16 @@
-# Compilation environment
-build
+# vs
+.vs
+*.bat
+*.aps
 
-# User Configuration
-*.user
+# vs remote
+out/
+CMakePresets.json
+CMakeSettings.json
+CMakeUserPresets.json
 
-# VSCode Format
+# vscode
 .vscode
+
+# build
+build*

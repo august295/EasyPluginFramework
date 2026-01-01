@@ -2,12 +2,15 @@
 #define __PluginCodeConvert_H__
 
 #include <Common/IPlugin.hpp>
+#include <Core/EventBus/IEventHandler.hpp>
+#include <Core/EventBus/IEventBus.hpp>
 
 #include "GlobalCodeConvert.hpp"
 #include "ui_PluginCodeConvert.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
+namespace Ui
+{
     class PluginCodeConvertClass;
 };
 QT_END_NAMESPACE
@@ -19,6 +22,7 @@ QT_END_NAMESPACE
 class PLUGINCODECONVERT_API PluginCodeConvert
     : public QWidget
     , public IPlugin
+    , public IEventHandler
 {
     Q_OBJECT
 
@@ -34,6 +38,8 @@ public:
 
     std::string Version() override;
 
+    std::string Name() override;
+
     std::string Description() override;
 
     std::string Icon() override;
@@ -42,6 +48,12 @@ public:
 
     void WidgetShow() override;
 
+    void OnEvent(const Event* event) override;
+
+private:
+    IEventBus* m_eventBus;
+
+private:
     /**
      * 内部函数
      */

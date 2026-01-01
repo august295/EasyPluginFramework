@@ -9,11 +9,10 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QPushButton>
 
-#include <Manager/DataManager.h>
-
 #include "PluginCodeConvert.h"
 
-struct PluginCodeConvert::PluginCodeConvertPrivate {
+struct PluginCodeConvert::PluginCodeConvertPrivate
+{
     QMap<QString, QTextCodec*> codec_map;
 };
 
@@ -33,6 +32,8 @@ PluginCodeConvert::~PluginCodeConvert()
 
 bool PluginCodeConvert::Init()
 {
+    m_eventBus = GetEventBus();
+
     QScreen* screen         = QGuiApplication::primaryScreen();
     QRect    screenGeometry = screen->geometry();
     resize(screenGeometry.width() / 2, screenGeometry.height() / 2);
@@ -45,6 +46,8 @@ bool PluginCodeConvert::Init()
 
 bool PluginCodeConvert::InitAppFinish()
 {
+    std::string record = "插件初始化完成";
+    m_eventBus->publish("log", new LogEvent(0, ET_LOG, Name(), __FILE__, __LINE__, __FUNCTION__, record));
     return true;
 }
 
@@ -57,6 +60,11 @@ bool PluginCodeConvert::Release()
 std::string PluginCodeConvert::Version()
 {
     return "0.0.1";
+}
+
+std::string PluginCodeConvert::Name()
+{
+    return "PluginCodeConvert";
 }
 
 std::string PluginCodeConvert::Description()
@@ -79,6 +87,10 @@ void PluginCodeConvert::WidgetShow()
     show();
 }
 
+void PluginCodeConvert::OnEvent(const Event* event)
+{
+}
+
 void PluginCodeConvert::InitWidget()
 {
     QStringList codec_list = {"GBK", "UTF-8"};
@@ -99,11 +111,13 @@ void PluginCodeConvert::slot_pushButton_add()
 void PluginCodeConvert::slot_pushButton_delete()
 {
     QList<QListWidgetItem*> selectedItems = ui->listWidget->selectedItems();
-    if (selectedItems.isEmpty()) {
+    if (selectedItems.isEmpty())
+    {
         return;
     }
 
-    for (QListWidgetItem* item : selectedItems) {
+    for (QListWidgetItem* item : selectedItems)
+    {
         delete ui->listWidget->takeItem(ui->listWidget->row(item));
     }
 }
@@ -113,9 +127,12 @@ void PluginCodeConvert::slot_pushButton_convert()
     QString     lang_old  = ui->comboBox_lang_old->currentText();
     QTextCodec* codec_old = nullptr;
     auto        iter_old  = m_p->codec_map.find(lang_old);
-    if (iter_old != m_p->codec_map.end()) {
+    if (iter_old != m_p->codec_map.end())
+    {
         codec_old = iter_old.value();
-    } else {
+    }
+    else
+    {
         codec_old = QTextCodec::codecForName(lang_old.toUtf8());
         m_p->codec_map.insert(lang_old, codec_old);
     }
@@ -123,18 +140,24 @@ void PluginCodeConvert::slot_pushButton_convert()
     QString     lang_new  = ui->comboBox_lang_new->currentText();
     QTextCodec* codec_new = nullptr;
     auto        iter_new  = m_p->codec_map.find(lang_new);
-    if (iter_new != m_p->codec_map.end()) {
+    if (iter_new != m_p->codec_map.end())
+    {
         codec_new = iter_new.value();
-    } else {
+    }
+    else
+    {
         codec_new = QTextCodec::codecForName(lang_new.toUtf8());
         m_p->codec_map.insert(lang_new, codec_new);
     }
 
-    DataManager::instance().Publish("log", QString("[%0 ==> %1]").arg(lang_old).arg(lang_new).toStdString());
-    for (int i = 0; i < ui->listWidget->count(); ++i) {
+    auto record = QString("编码转换 [%0 ==> %1]").arg(lang_old).arg(lang_new).toStdString();
+    m_eventBus->publish("log", new LogEvent(0, ET_LOG, Name(), __FILE__, __LINE__, __FUNCTION__, record));
+    for (int i = 0; i < ui->listWidget->count(); ++i)
+    {
         QString filename = ui->listWidget->item(i)->text();
         QFile   file(filename);
-        if (!file.open(QIODevice::ReadOnly)) {
+        if (!file.open(QIODevice::ReadOnly))
+        {
             continue;
         }
         QByteArray content    = file.readAll();
@@ -142,11 +165,13 @@ void PluginCodeConvert::slot_pushButton_convert()
         QByteArray conten_new = codec_new->fromUnicode(conten_old);
 
         QFile file_new(filename + "_convert");
-        if (!file_new.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (!file_new.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        {
             continue;
         }
         file_new.write(conten_new);
-        DataManager::instance().Publish("log", QString("\t[%0] ==> [%1]").arg(filename).arg(filename + "_convert").toStdString());
+        auto recordItem = QString("\t[%0] ==> [%1]").arg(filename).arg(filename + "_convert").toStdString();
+        m_eventBus->publish("log", new LogEvent(0, ET_LOG, Name(), __FILE__, __LINE__, __FUNCTION__, recordItem));
     }
 }
 
