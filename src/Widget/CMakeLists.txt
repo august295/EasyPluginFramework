@@ -5,6 +5,8 @@ include(${ROOT_DIR}/cmake/module.cmake)
 include_directories(${ROOT_DIR}/3rdparty/spdlog/include)
 add_compile_definitions(PUGIXML_HEADER_ONLY)
 include_directories(${ROOT_DIR}/3rdparty/pugixml/src)
+include_directories(${ROOT_DIR}/3rdparty/sqlite)
+include_directories(${ROOT_DIR}/3rdparty/filesystem/include)
 
 # Qt 库
 set(QT_LIBRARY_LIST "Core" "Gui" "Widgets")
@@ -19,3 +21,4 @@ set(ProjectName "MainWidget")
 CreateTarget(${ProjectName} "Exe" "Widget")
 
 target_link_libraries(${ProjectName} "libssl" "libcrypto")
+target_link_libraries(${ProjectName} "sqlite")
