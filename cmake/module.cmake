@@ -15,6 +15,7 @@ macro(CreateTarget ProjectName Type Group)
     set(RESOURCE_FILES "")
     file(GLOB_RECURSE HEADER_FILES "${CURRENT_PATH}/*.h" "${CURRENT_PATH}/*.hpp")
     file(GLOB_RECURSE SOURCE_FILES "${CURRENT_PATH}/*.c" "${CURRENT_PATH}/*.cpp")
+    file(GLOB_RECURSE RESOURCE_FILES "${CURRENT_PATH}/app_win32.rc")
 
     # 添加 qt 头文件
     if(NOT("${QT_LIBRARY_LIST}" STREQUAL ""))
@@ -25,7 +26,8 @@ macro(CreateTarget ProjectName Type Group)
         set(CMAKE_AUTORCC ON)
         AddQtInc("${QT_LIBRARY_LIST}")
         file(GLOB_RECURSE FORM_FILES "${CURRENT_PATH}/*.ui")
-        file(GLOB_RECURSE RESOURCE_FILES "${CURRENT_PATH}/*.qrc")
+        file(GLOB_RECURSE QT_RESOURCE_FILES "${CURRENT_PATH}/*.qrc" )
+        list(APPEND RESOURCE_FILES ${QT_RESOURCE_FILES})
     endif()
 
     # 文件分类
@@ -34,12 +36,6 @@ macro(CreateTarget ProjectName Type Group)
         source_group(TREE ${CURRENT_PATH} PREFIX "Source Files" FILES ${SOURCE_FILES})
         source_group(TREE ${CURRENT_PATH} PREFIX "Form Files" FILES ${FORM_FILES})
         source_group(TREE ${CURRENT_PATH} PREFIX "Resource Files" FILES ${RESOURCE_FILES})
-    elseif(CMAKE_CXX_PLATFORM_ID MATCHES "MinGW")
-        source_group("Header Files" FILES ${HEADER_FILES})
-        source_group("Source Files" FILES ${SOURCE_FILES})
-        source_group("Form Files" FILES ${FORM_FILES})
-        source_group("Resource Files" FILES ${RESOURCE_FILES})
-    elseif(CMAKE_CXX_PLATFORM_ID MATCHES "Linux")
     endif()
 
     # 头文件搜索的路径
@@ -52,7 +48,6 @@ macro(CreateTarget ProjectName Type Group)
             WIN32
             ${HEADER_FILES} ${SOURCE_FILES}
             ${FORM_FILES} ${RESOURCE_FILES}
-            ${CURRENT_PATH}/app_win32.rc
         )
     else()
         # 生成链接库
@@ -78,23 +73,6 @@ macro(CreateTarget ProjectName Type Group)
 
     # 添加项目生成的链接库
     foreach(library ${SELF_LIBRARY_LIST})
-        target_link_libraries(${ProjectName} ${library})
-    endforeach()
-endmacro()
-
-# 添加头文件和链接库路径
-macro(AddLibrary LibraryList)
-    foreach(library ${LibraryList})
-        # 添加 include
-        include_directories(${ROOT_DIR}/3rdparty/${library})
-        include_directories(${ROOT_DIR}/3rdparty/${library}/include)
-        # 添加链接库路径
-        if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-            if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-                link_directories(${ROOT_DIR}/3rdparty/${library}/lib/win32/${CMAKE_BUILD_TYPE})
-            else()
-                link_directories(${ROOT_DIR}/3rdparty/${library}/lib/win64/${CMAKE_BUILD_TYPE})
-            endif()
-        endif()
+        target_link_libraries(${ProjectName} PRIVATE ${library})
     endforeach()
 endmacro()

@@ -1,0 +1,17 @@
+{
+    "dependencies": [
+        "openssl",
+        "sqlite3"
+    ],
+    "builtin-baseline": "6f29f12e82a8293156836ad81cc9bf5af41fe836",
+    "overrides": [
+        {
+            "name": "openssl",
+            "version": "3.5.4"
+        },
+        {
+            "name": "sqlite3",
+            "version": "3.50.4"
+        }
+    ]
+}
