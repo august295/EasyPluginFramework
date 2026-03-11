@@ -6,7 +6,7 @@
 #include <thread>
 #include <condition_variable>
 #include <atomic>
-#include <cstring>
+#include <memory>
 
 #include "IEventBus.hpp"
 
@@ -14,27 +14,26 @@ using TopicId = uint64_t;
 
 struct QueuedEvent
 {
-    TopicId topic;
-    Event*  event;
+    TopicId                topic;
+    std::shared_ptr<Event> event;
 };
 
-static TopicId hashTopic(const std::string& s)
+static TopicId hashTopic(const std::string& topicName)
 {
-    // FNV-1a
-    TopicId h = 1469598103934665603ULL;
-    for (char c : s)
+    TopicId hashValue = 1469598103934665603ULL;
+    for (char c : topicName)
     {
-        h ^= (uint8_t)c;
-        h *= 1099511628211ULL;
+        hashValue ^= static_cast<uint8_t>(c);
+        hashValue *= 1099511628211ULL;
     }
-    return h;
+    return hashValue;
 }
 
 struct Compare
 {
-    bool operator()(const QueuedEvent& a, const QueuedEvent& b)
+    bool operator()(const QueuedEvent& left, const QueuedEvent& right) const
     {
-        return a.event->priority > b.event->priority;
+        return left.event->priority > right.event->priority;
     }
 };
 
@@ -57,12 +56,17 @@ public:
 
     void publish(const std::string& id, Event* event) override
     {
-        QueuedEvent qe;
-        qe.topic = hashTopic(id);
-        qe.event = event;
+        if (event == nullptr)
+        {
+            return;
+        }
+
+        QueuedEvent queuedEvent;
+        queuedEvent.topic = hashTopic(id);
+        queuedEvent.event.reset(event);
         {
             std::lock_guard<std::mutex> lock(qmtx_);
-            queue_.push(std::move(qe));
+            queue_.push(queuedEvent);
         }
         cv_.notify_one();
     }
@@ -86,26 +90,29 @@ private:
     {
         while (running_)
         {
-            QueuedEvent qe;
+            QueuedEvent queuedEvent;
             {
                 std::unique_lock<std::mutex> lock(qmtx_);
                 cv_.wait(lock, [&] { return !queue_.empty() || !running_; });
                 if (!running_)
                     break;
-                qe = std::move(queue_.top());
+                queuedEvent = queue_.top();
                 queue_.pop();
             }
 
-            std::lock_guard<std::mutex> lock(smtx_);
-            auto                        handlers = subs_.find(qe.topic);
-            if (handlers != subs_.end())
+            std::vector<IEventHandler*> handlers;
             {
-                for (auto h : handlers->second)
-                {
-                    h->OnEvent(qe.event);
+                std::lock_guard<std::mutex> lock(smtx_);
+                auto                        handlerIter = subs_.find(queuedEvent.topic);
+                if (handlerIter != subs_.end()) {
+                    handlers.assign(handlerIter->second.begin(), handlerIter->second.end());
                 }
             }
-            delete qe.event;
+
+            for (auto* handler : handlers)
+            {
+                handler->OnEvent(queuedEvent.event.get());
+            }
         }
     }
 

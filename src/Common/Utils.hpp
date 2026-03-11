@@ -2,120 +2,125 @@
 #define __UTILS_HPP__
 
 #include <string>
+#include <vector>
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
-static std::string gbk_to_utf8(const std::string& str_gbk)
+
+inline std::string convertCodePage(const std::string& input, UINT sourceCodePage, UINT targetCodePage)
 {
-    int      utf16Length = ::MultiByteToWideChar(CP_ACP, 0, str_gbk.c_str(), -1, NULL, 0);
-    wchar_t* utf16Buffer = new wchar_t[utf16Length];
-    ::MultiByteToWideChar(CP_ACP, 0, str_gbk.c_str(), -1, utf16Buffer, utf16Length);
+    if (input.empty())
+    {
+        return {};
+    }
 
-    int   utf8BufferSize = ::WideCharToMultiByte(CP_UTF8, 0, utf16Buffer, -1, NULL, 0, NULL, NULL);
-    char* utf8Buffer     = new char[utf8BufferSize];
-    ::WideCharToMultiByte(CP_UTF8, 0, utf16Buffer, -1, utf8Buffer, utf8BufferSize, NULL, NULL);
+    const int wideLength = ::MultiByteToWideChar(sourceCodePage, 0, input.c_str(), -1, nullptr, 0);
+    if (wideLength <= 0)
+    {
+        return {};
+    }
 
-    std::string utf8String(utf8Buffer);
+    std::vector<wchar_t> wideBuffer(static_cast<size_t>(wideLength));
+    if (::MultiByteToWideChar(sourceCodePage, 0, input.c_str(), -1, wideBuffer.data(), wideLength) <= 0)
+    {
+        return {};
+    }
 
-    delete[] utf16Buffer;
-    delete[] utf8Buffer;
+    const int outputLength = ::WideCharToMultiByte(targetCodePage, 0, wideBuffer.data(), -1, nullptr, 0, nullptr, nullptr);
+    if (outputLength <= 0)
+    {
+        return {};
+    }
 
-    return utf8String;
+    std::vector<char> outputBuffer(static_cast<size_t>(outputLength));
+    if (::WideCharToMultiByte(targetCodePage, 0, wideBuffer.data(), -1, outputBuffer.data(), outputLength, nullptr, nullptr) <= 0)
+    {
+        return {};
+    }
+
+    return std::string(outputBuffer.data());
 }
 
-static std::string utf8_to_gbk(const std::string& str_utf8)
+inline std::string gbkToUtf8(const std::string& gbkText)
 {
-    int      utf16Length = ::MultiByteToWideChar(CP_UTF8, 0, str_utf8.c_str(), -1, NULL, 0);
-    wchar_t* utf16Buffer = new wchar_t[utf16Length];
-    ::MultiByteToWideChar(CP_UTF8, 0, str_utf8.c_str(), -1, utf16Buffer, utf16Length);
+    return convertCodePage(gbkText, CP_ACP, CP_UTF8);
+}
 
-    int   gbkBufferSize = ::WideCharToMultiByte(CP_ACP, 0, utf16Buffer, -1, NULL, 0, NULL, NULL);
-    char* gbkBuffer     = new char[gbkBufferSize];
-    ::WideCharToMultiByte(CP_ACP, 0, utf16Buffer, -1, gbkBuffer, gbkBufferSize, NULL, NULL);
-
-    std::string gbkString(gbkBuffer);
-
-    delete[] utf16Buffer;
-    delete[] gbkBuffer;
-
-    return gbkString;
+inline std::string utf8ToGbk(const std::string& utf8Text)
+{
+    return convertCodePage(utf8Text, CP_UTF8, CP_ACP);
 }
 #elif defined(linux) || defined(__linux) || defined(__linux__)
     #include <iconv.h>
-    #include <iostream>
-static std::string gbk_to_utf8(const std::string& str_gbk)
+
+inline std::string convertEncoding(const std::string& input, const char* fromEncoding, const char* toEncoding)
 {
-    iconv_t cd = iconv_open("UTF-8", "GBK");
-    if (cd == (iconv_t)-1) {
-        return "";
+    if (input.empty())
+    {
+        return {};
     }
 
-    char*  inbuf       = const_cast<char*>(str_gbk.c_str());
-    size_t inbytesleft = str_gbk.length();
-
-    size_t outbytesleft = inbytesleft * 2; // 最大可能的输出字节数
-    char*  outbuf       = new char[outbytesleft];
-    char*  outptr       = outbuf;
-
-    size_t result = iconv(cd, &inbuf, &inbytesleft, &outptr, &outbytesleft);
-    if (result == (size_t)-1) {
-        delete[] outbuf;
-        iconv_close(cd);
-        return "";
+    iconv_t converter = iconv_open(toEncoding, fromEncoding);
+    if (converter == reinterpret_cast<iconv_t>(-1))
+    {
+        return {};
     }
 
-    iconv_close(cd);
+    std::vector<char> outputBuffer(input.size() * 4 + 1, '\0');
+    char*             inputBuffer     = const_cast<char*>(input.data());
+    size_t            inputBytesLeft  = input.size();
+    char*             outputPointer   = outputBuffer.data();
+    size_t            outputBytesLeft = outputBuffer.size() - 1;
 
-    std::string utf8String(outbuf, outptr - outbuf);
-    delete[] outbuf;
+    const size_t result = iconv(converter, &inputBuffer, &inputBytesLeft, &outputPointer, &outputBytesLeft);
+    iconv_close(converter);
+    if (result == static_cast<size_t>(-1))
+    {
+        return {};
+    }
 
-    return utf8String;
+    return std::string(outputBuffer.data(), static_cast<size_t>(outputPointer - outputBuffer.data()));
 }
 
-static std::string utf8_to_gbk(const std::string& str_utf8)
+inline std::string gbkToUtf8(const std::string& gbkText)
 {
-    iconv_t cd = iconv_open("GBK", "UTF-8");
-    if (cd == (iconv_t)-1) {
-        return "";
-    }
+    return convertEncoding(gbkText, "GBK", "UTF-8");
+}
 
-    char*  inbuf       = const_cast<char*>(str_utf8.c_str());
-    size_t inbytesleft = str_utf8.length();
-
-    size_t outbytesleft = inbytesleft;
-    char*  outbuf       = new char[outbytesleft];
-    char*  outptr       = outbuf;
-
-    size_t result = iconv(cd, &inbuf, &inbytesleft, &outptr, &outbytesleft);
-    if (result == (size_t)-1) {
-        delete[] outbuf;
-        iconv_close(cd);
-        return "";
-    }
-
-    iconv_close(cd);
-
-    std::string gbkString(outbuf, outptr - outbuf);
-    delete[] outbuf;
-
-    return gbkString;
+inline std::string utf8ToGbk(const std::string& utf8Text)
+{
+    return convertEncoding(utf8Text, "UTF-8", "GBK");
 }
 #endif
 
 /**
- * @brief 过滤换行符
- * @param str          原生字符串
- * @return std::string 无换行符字符串
+ * @brief 移除字符串尾部的回车和换行符。
+ * @param text 原始字符串。
+ * @return std::string 处理后的字符串。
  */
-inline std::string RemoveCRLF(const std::string& str)
+inline std::string removeCrlf(const std::string& text)
 {
-    auto i = str.size();
-    for (; i >= 0; --i) {
-        if (str[i - 1] != '\r' && str[i - 1] != '\n') {
-            break;
-        }
+    size_t end = text.size();
+    while (end > 0 && (text[end - 1] == '\r' || text[end - 1] == '\n'))
+    {
+        --end;
     }
-    return str.substr(0, i);
+    return text.substr(0, end);
+}
+
+inline std::string gbk_to_utf8(const std::string& gbkText)
+{
+    return gbkToUtf8(gbkText);
+}
+
+inline std::string utf8_to_gbk(const std::string& utf8Text)
+{
+    return utf8ToGbk(utf8Text);
+}
+
+inline std::string RemoveCRLF(const std::string& text)
+{
+    return removeCrlf(text);
 }
 
 #endif

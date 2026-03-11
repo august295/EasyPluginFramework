@@ -85,7 +85,7 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
         std::string error   = LIB_ERROR();
         pluginConfig.isLoad = false;
 #if defined(_WIN32) || defined(_WIN64)
-        error = gbk_to_utf8(RemoveCRLF(error));
+        error = gbkToUtf8(removeCrlf(error));
 #endif
         pluginConfig.error = error;
         EPF_LOG_ERROR("{} Load Failed: {}", file, pluginConfig.error);
@@ -94,11 +94,11 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 
     // 加载函数
     typedef IPlugin* (*CreatePluginFunc)();
-    std::string      FuncName     = "CreatePlugin";
-    CreatePluginFunc CreatePlugin = LoadFunction<CreatePluginFunc>(handle, FuncName.c_str());
-    if (!CreatePlugin)
+    std::string      functionName = "CreatePlugin";
+    CreatePluginFunc createPlugin = LoadFunction<CreatePluginFunc>(handle, functionName.c_str());
+    if (!createPlugin)
     {
-        std::string error   = FuncName + " function does not exist";
+        std::string error   = functionName + " function does not exist";
         pluginConfig.isLoad = false;
         pluginConfig.error  = error;
         EPF_LOG_ERROR(error);
@@ -109,7 +109,7 @@ bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
     pluginConfig.handle = handle;
 
     // 调用导出函数创建对象，并进行初始化
-    IPlugin* plugin          = CreatePlugin();
+    IPlugin* plugin          = createPlugin();
     pluginConfig.plugin      = plugin;
     pluginConfig.version     = plugin->Version();
     pluginConfig.description = plugin->Description();
