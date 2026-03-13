@@ -38,19 +38,19 @@ cd EasyPluginFramework
 如果不是使用 `Qt Creator` 打开工程，需要确认 `cmake/module_qt.cmake` 中的 Qt 路径配置正确。
 
 ```bash
-cmake -S . -B build_clangd
+cmake -B"build" -G"Visual Studio 17 2022"
 ```
 
 ### 3. 编译
 
 ```bash
-cmake --build build_clangd --config Debug
+cmake --build .\build\ --config Release -j 4
 ```
 
 编译完成后：
 
-- 主程序输出到 `build_clangd/bin`
-- 插件动态库也输出到 `build_clangd/bin`
+- 主程序输出到 `build/bin`
+- 插件动态库也输出到 `build/bin`
 - 资源文件会从 `resources/` 复制到输出目录
 
 ## 目录结构说明

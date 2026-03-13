@@ -1,17 +1,17 @@
-#ifndef __PLUGINBASE64_H__
-#define __PLUGINBASE64_H__
+#ifndef __PLUGIN_BASE64_WIDGET_H__
+#define __PLUGIN_BASE64_WIDGET_H__
 
 #include <Common/IPlugin.hpp>
 #include <Core/EventBus/IEventHandler.hpp>
 #include <Core/EventBus/IEventBus.hpp>
 
-#include "GlobalPluginBase64.hpp"
-#include "ui_PluginBase64.h"
+#include "../GlobalPluginBase64.hpp"
+#include "ui_plugin_base64_widget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
-    class PluginBase64Class;
+    class PluginBase64WidgetClass;
 };
 QT_END_NAMESPACE
 
@@ -27,8 +27,8 @@ class PLUGINBASE64_API PluginBase64
     Q_OBJECT
 
 public:
-    PluginBase64(QWidget* parent = nullptr);
-    ~PluginBase64();
+    explicit PluginBase64(QWidget* parent = nullptr);
+    ~PluginBase64() override;
 
     bool Init() override;
 
@@ -63,10 +63,23 @@ public slots:
     void slot_pushButton_open_clicked();
     void slot_pushButton_img_to_base64_clicked();
     void slot_pushButton_base64_to_img_clicked();
+    void slot_pushButton_save_clicked();
     void slot_pushButton_clear_clicked();
 
 private:
-    Ui::PluginBase64Class* ui;
+    void UpdatePreviewImage(const QImage& image);
+    void UpdateInfoText(const QString& imageInfo, const QString& base64Info);
+    void ClearData();
+    QString BuildImageInfo(const QImage& image, const QByteArray& format, const QString& fileName = QString()) const;
+    QString BuildBase64Info(const QByteArray& rawData, const QString& base64Text) const;
+    QByteArray DetectImageFormat(const QString& fileName) const;
+
+private:
+    QImage                 m_currentImage;
+    QByteArray             m_currentImageBytes;
+    QByteArray             m_currentImageFormat;
+    QString                m_currentFileName;
+    Ui::PluginBase64WidgetClass* ui;
 };
 
 #endif
