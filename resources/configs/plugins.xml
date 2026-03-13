@@ -4,6 +4,7 @@
 		<PluginTest load="true" />
 		<PluginCodeConvert load="true" />
         <PluginBase64 load="true" />
+        <PluginAsn1Viewer load="true" />
         <PluginSystemInfo load="true" />
 	</Test>
 </Plugins>
