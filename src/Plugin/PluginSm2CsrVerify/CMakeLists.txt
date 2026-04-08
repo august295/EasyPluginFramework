@@ -1,12 +1,12 @@
 # Qt 库
 set(QT_LIBRARY_LIST "Core" "Widgets")
 # 链接库
-set(SELF_LIBRARY_LIST "EventBus" "endecode")
+set(SELF_LIBRARY_LIST "EventBus")
 # 预编译
-add_compile_definitions(PLUGINSM2PKCS7VERIFY_EXPORTS)
+add_compile_definitions(PLUGINSM2CSRVERIFY_EXPORTS)
 
 # 创建项目
-set(ProjectName "PluginSm2Pkcs7Verify")
+set(ProjectName "PluginSm2CsrVerify")
 CreateTarget(${ProjectName} "Dll" "Plugin")
 
 # 包含目录

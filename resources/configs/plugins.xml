@@ -7,5 +7,6 @@
         <PluginAsn1Viewer load="true" />
         <PluginSystemInfo load="true" />
         <PluginSm2Pkcs7Verify load="true" />
+        <PluginSm2CsrVerify load="true" />
 	</Test>
 </Plugins>
