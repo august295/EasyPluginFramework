@@ -6,5 +6,6 @@
         <PluginBase64 load="true" />
         <PluginAsn1Viewer load="true" />
         <PluginSystemInfo load="true" />
+        <PluginSm2Pkcs7Verify load="true" />
 	</Test>
 </Plugins>

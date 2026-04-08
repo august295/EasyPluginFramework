@@ -17,4 +17,8 @@ CMakeUserPresets.json
 .cache
 
 # build
-build*
+build*/
+
+# ai
+.codex
+openspec
