@@ -105,7 +105,6 @@ cmake --build .\build\ --config Release -j 4
 - `src/Core/EventBus/IEventHandler.hpp`：事件处理接口
 - `src/Core/EventBus/IEventBus.hpp`：事件总线接口
 - `src/Core/EventBus/EventBus.cpp`：事件总线实现
-- `src/Core/EventBus/PluginWrapper.h`：插件包装辅助结构
 
 作用说明：
 

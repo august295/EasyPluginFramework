@@ -10,3 +10,6 @@
 [submodule "3rdparty/filesystem"]
 	path = 3rdparty/filesystem
 	url = git@github.com:gulrak/filesystem.git
+[submodule "3rdparty/cpptrace"]
+	path = 3rdparty/cpptrace
+	url = git@github.com:jeremy-rifkin/cpptrace.git
