@@ -39,6 +39,7 @@ cd EasyPluginFramework
 
 ```bash
 cmake -B"build" -G"Visual Studio 17 2022"
+cmake -B"build_win32" -G"Visual Studio 17 2022" -A"Win32" -T"v142" -D"QT_PATH=C:\\Qt\\5.15.2\\msvc2019"
 ```
 
 ### 3. 编译

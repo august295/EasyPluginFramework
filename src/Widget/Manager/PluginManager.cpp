@@ -1,5 +1,6 @@
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
+#include <ghc/fs_std.hpp>
 
 #include "LoggerManager.h"
 #include "PluginManager.h"
@@ -76,9 +77,9 @@ bool PluginManager::WritePluginConfig(const std::unordered_map<std::string, Plug
 
 bool PluginManager::LoadPluginOne(PluginConfig& pluginConfig)
 {
-    std::string useName = GetSharedName(pluginConfig.name);
+    auto useName = fs::path("epf_plugins") / GetSharedName(pluginConfig.name);
     // 加载动态库
-    std::string file   = useName;
+    std::string file   = useName.string();
     LIB_HANDLE  handle = LIB_LOAD(file.c_str());
     if (!handle)
     {
