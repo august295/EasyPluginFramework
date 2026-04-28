@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cctype>
 #include <fstream>
 #include <iomanip>
 #include <iterator>
@@ -63,6 +64,144 @@ std::string decodePemContent(const std::string& text)
     }
     const QByteArray decodedBytes = QByteArray::fromBase64(QByteArray::fromStdString(base64Text));
     return std::string(decodedBytes.constData(), static_cast<std::size_t>(decodedBytes.size()));
+}
+
+std::string stripPemMarkers(const std::string& text)
+{
+    std::string normalizedText = text;
+    std::size_t markerStart    = normalizedText.find("-----BEGIN");
+    while (markerStart != std::string::npos)
+    {
+        const std::size_t markerEnd = normalizedText.find("-----", markerStart + 10U);
+        if (markerEnd == std::string::npos)
+        {
+            break;
+        }
+
+        normalizedText.erase(markerStart, markerEnd - markerStart + 5U);
+        markerStart = normalizedText.find("-----BEGIN");
+    }
+
+    markerStart = normalizedText.find("-----END");
+    while (markerStart != std::string::npos)
+    {
+        const std::size_t markerEnd = normalizedText.find("-----", markerStart + 8U);
+        if (markerEnd == std::string::npos)
+        {
+            break;
+        }
+
+        normalizedText.erase(markerStart, markerEnd - markerStart + 5U);
+        markerStart = normalizedText.find("-----END");
+    }
+
+    return normalizedText;
+}
+
+std::string sanitizeBase64Content(const std::string& text)
+{
+    const std::string normalizedText = stripPemMarkers(text);
+    std::string       base64Text;
+    base64Text.reserve(normalizedText.size());
+    for (const unsigned char ch : normalizedText)
+    {
+        if (!std::isspace(ch))
+        {
+            base64Text.push_back(static_cast<char>(ch));
+        }
+    }
+    return base64Text;
+}
+
+bool looksLikePemOrBase64(const std::string& text)
+{
+    if (isPemContent(text))
+    {
+        return true;
+    }
+
+    const std::string sanitizedText = sanitizeBase64Content(text);
+    if (sanitizedText.empty() || sanitizedText.size() < 8U)
+    {
+        return false;
+    }
+
+    return sanitizedText.size() == trimText(text).size() || text.find('\n') != std::string::npos || text.find('\r') != std::string::npos;
+}
+
+bool isValidBase64Text(const std::string& text)
+{
+    if (text.empty() || (text.size() % 4U) != 0U)
+    {
+        return false;
+    }
+
+    bool        seenPadding  = false;
+    std::size_t paddingCount = 0U;
+    for (const char ch : text)
+    {
+        const unsigned char value = static_cast<unsigned char>(ch);
+        if (std::isalnum(value) != 0 || ch == '+' || ch == '/')
+        {
+            if (seenPadding)
+            {
+                return false;
+            }
+            continue;
+        }
+
+        if (ch == '=')
+        {
+            seenPadding = true;
+            ++paddingCount;
+            if (paddingCount > 2U)
+            {
+                return false;
+            }
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+std::string decodeBase64Content(const std::string& text)
+{
+    const std::string sanitizedText = sanitizeBase64Content(text);
+    if (!isValidBase64Text(sanitizedText))
+    {
+        return "";
+    }
+
+    const QByteArray decodedBytes = QByteArray::fromBase64(QByteArray::fromStdString(sanitizedText));
+    return std::string(decodedBytes.constData(), static_cast<std::size_t>(decodedBytes.size()));
+}
+
+std::string normalizeParseContent(const std::string& text, bool* usedBase64)
+{
+    if (usedBase64 != nullptr)
+    {
+        *usedBase64 = false;
+    }
+
+    if (!looksLikePemOrBase64(text))
+    {
+        return text;
+    }
+
+    const std::string decodedText = decodeBase64Content(text);
+    if (!decodedText.empty())
+    {
+        if (usedBase64 != nullptr)
+        {
+            *usedBase64 = true;
+        }
+        return decodedText;
+    }
+
+    return text;
 }
 
 std::string bytesToHex(const std::uint8_t* data, const std::size_t length)
@@ -185,10 +324,25 @@ std::optional<Asn1Document> Asn1ParserService::parseFile(const std::string& file
     const std::string fileContent = readFileContent(filePath);
     if (fileContent.empty())
     {
-        m_lastError = "读取文件失败或文件为空";
+        m_lastError = "文件读取失败：无法打开文件或文件为空";
         return std::nullopt;
     }
-    return parseBytes(filePath, fileContent);
+
+    const std::string binaryContent = normalizeParseContent(fileContent, nullptr);
+    return parseBinaryContent(filePath, binaryContent);
+}
+
+std::optional<Asn1Document> Asn1ParserService::parseText(const std::string& sourceName, const std::string& textContent) const
+{
+    m_lastError.clear();
+    if (textContent.empty())
+    {
+        m_lastError = "输入失败：输入内容为空";
+        return std::nullopt;
+    }
+
+    const std::string binaryContent = normalizeParseContent(textContent, nullptr);
+    return parseBinaryContent(sourceName, binaryContent);
 }
 
 const std::string& Asn1ParserService::getLastError() const
@@ -196,14 +350,8 @@ const std::string& Asn1ParserService::getLastError() const
     return m_lastError;
 }
 
-std::optional<Asn1Document> Asn1ParserService::parseBytes(const std::string& sourceName, const std::string& fileContent) const
+std::optional<Asn1Document> Asn1ParserService::parseBinaryContent(const std::string& sourceName, const std::string& binaryContent) const
 {
-    const std::string binaryContent = isPemContent(fileContent) ? decodePemContent(fileContent) : fileContent;
-    if (binaryContent.empty())
-    {
-        m_lastError = "PEM/Base64 内容解码失败";
-        return std::nullopt;
-    }
     easy_asn1_tree_st* rawTree = static_cast<easy_asn1_tree_st*>(std::malloc(sizeof(easy_asn1_tree_st)));
     if (rawTree == nullptr)
     {
@@ -216,7 +364,7 @@ std::optional<Asn1Document> Asn1ParserService::parseBytes(const std::string& sou
     tree.reset(rawTree);
     if (rawTree == nullptr)
     {
-        m_lastError = "ASN.1 解析失败";
+        m_lastError = "ASN.1 解析失败：输入数据不是有效的 ASN.1 结构";
         return std::nullopt;
     }
     Asn1Document document = {};

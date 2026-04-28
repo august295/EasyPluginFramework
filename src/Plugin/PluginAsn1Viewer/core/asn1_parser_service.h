@@ -22,13 +22,21 @@ public:
     std::optional<Asn1Document> parseFile(const std::string& filePath) const;
 
     /**
+     * @brief 从文本内容解析 ASN.1 文档。
+     * @param sourceName 数据来源名称。
+     * @param textContent 输入文本。
+     * @return std::optional<Asn1Document> 成功时返回文档。
+     */
+    std::optional<Asn1Document> parseText(const std::string& sourceName, const std::string& textContent) const;
+
+    /**
      * @brief 获取最近一次错误信息。
      * @return const std::string& 错误信息。
      */
     const std::string& getLastError() const;
 
 private:
-    std::optional<Asn1Document> parseBytes(const std::string& sourceName, const std::string& fileContent) const;
+    std::optional<Asn1Document> parseBinaryContent(const std::string& sourceName, const std::string& binaryContent) const;
 
 private:
     mutable std::string m_lastError;

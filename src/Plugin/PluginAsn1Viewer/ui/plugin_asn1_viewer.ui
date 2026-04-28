@@ -18,6 +18,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_top">
      <item>
       <widget class="QLineEdit" name="lineEdit_file">
+       <property name="placeholderText">
+        <string>当前来源会显示在这里</string>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -31,6 +34,20 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="plainTextEdit_input">
+     <property name="placeholderText">
+      <string>在这里直接粘贴 DER 文本、PEM 或 Base64 数据</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_parseInput">
+     <property name="text">
+      <string>解析输入数据</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_summary">

@@ -130,15 +130,19 @@ void PluginAsn1Viewer::slotPushButtonOpenClicked()
         return;
     }
 
-    const auto document = m_parserService.parseFile(filePath.toStdString());
-    if (!document.has_value())
+    loadDocument(m_parserService.parseFile(filePath.toStdString()), QString("解析 ASN1 文件: %1").arg(filePath));
+}
+
+void PluginAsn1Viewer::slotPushButtonParseInputClicked()
+{
+    const QString inputText = ui->plainTextEdit_input->toPlainText();
+    if (inputText.trimmed().isEmpty())
     {
-        QMessageBox::warning(this, tr("解析失败"), toQString(m_parserService.getLastError()));
+        QMessageBox::warning(this, tr("输入为空"), tr("请先输入待解析的 ASN1 数据。"));
         return;
     }
 
-    showDocument(document.value());
-    publishLog(QString("解析 ASN1 文件: %1").arg(filePath).toStdString());
+    loadDocument(m_parserService.parseText(tr("直接输入").toStdString(), inputText.toStdString()), tr("解析 ASN1 输入数据"));
 }
 
 void PluginAsn1Viewer::slotTreeItemSelectionChanged()
@@ -161,10 +165,16 @@ void PluginAsn1Viewer::initWidget()
 {
     setupDetailPane();
     connect(ui->pushButton_open, &QPushButton::clicked, this, &PluginAsn1Viewer::slotPushButtonOpenClicked);
+    connect(ui->pushButton_parseInput, &QPushButton::clicked, this, &PluginAsn1Viewer::slotPushButtonParseInputClicked);
     connect(ui->treeWidget_asn1, &QTreeWidget::itemSelectionChanged, this, &PluginAsn1Viewer::slotTreeItemSelectionChanged);
     ui->treeWidget_asn1->setColumnCount(1);
     ui->treeWidget_asn1->setHeaderHidden(true);
-    ui->label_summary->hide();
+    ui->label_summary->setWordWrap(true);
+    ui->verticalLayout->setStretch(0, 0);
+    ui->verticalLayout->setStretch(1, 1);
+    ui->verticalLayout->setStretch(2, 0);
+    ui->verticalLayout->setStretch(3, 0);
+    ui->verticalLayout->setStretch(4, 4);
     clearResult();
 }
 
@@ -195,6 +205,10 @@ void PluginAsn1Viewer::showDocument(const core::Asn1Document& document)
     }
     showHexDump();
     ui->treeWidget_asn1->expandAll();
+    ui->label_summary->setText(tr("解析成功：来源=%1，字节数=%2，根节点数=%3")
+                                   .arg(toQString(document.sourceName))
+                                   .arg(static_cast<qulonglong>(document.byteCount))
+                                   .arg(document.rootNodes.size()));
 }
 
 void PluginAsn1Viewer::appendNode(const core::Asn1NodeInfo& nodeInfo, QTreeWidgetItem* parentItem)
@@ -215,10 +229,24 @@ void PluginAsn1Viewer::appendNode(const core::Asn1NodeInfo& nodeInfo, QTreeWidge
     }
 }
 
+void PluginAsn1Viewer::loadDocument(const std::optional<core::Asn1Document>& document, const QString& successLogMessage)
+{
+    if (!document.has_value())
+    {
+        clearResult();
+        QMessageBox::warning(this, tr("解析失败"), toQString(m_parserService.getLastError()));
+        return;
+    }
+
+    showDocument(document.value());
+    publishLog(successLogMessage.toStdString());
+}
+
 void PluginAsn1Viewer::clearResult()
 {
     m_currentDocument.reset();
     ui->lineEdit_file->clear();
+    ui->label_summary->setText(tr("未加载 ASN1 数据"));
     ui->treeWidget_asn1->clear();
     if (m_hexView != nullptr)
     {

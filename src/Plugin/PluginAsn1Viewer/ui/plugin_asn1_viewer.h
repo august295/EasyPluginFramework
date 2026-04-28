@@ -47,11 +47,13 @@ public:
 
 private slots:
     void slotPushButtonOpenClicked();
+    void slotPushButtonParseInputClicked();
     void slotTreeItemSelectionChanged();
 
 private:
     void initWidget();
     void setupDetailPane();
+    void loadDocument(const std::optional<core::Asn1Document>& document, const QString& successLogMessage);
     void showDocument(const core::Asn1Document& document);
     void appendNode(const core::Asn1NodeInfo& nodeInfo, QTreeWidgetItem* parentItem);
     void clearResult();
