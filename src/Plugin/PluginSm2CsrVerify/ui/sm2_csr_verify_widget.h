@@ -9,6 +9,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QPlainTextEdit;
+class QTableWidget;
 
 class Sm2CsrVerifyWidget
     : public QWidget
@@ -27,13 +28,17 @@ signals:
     void verifyRequested();
 
 private:
+    void resizeEvent(QResizeEvent* event) override;
     void createLayout();
+    void setTableRow(int row, const QString& name, const QString& value);
+    QPlainTextEdit* ensureValueEditor(int row);
+    void updateResultTableColumnWidths();
 
 private:
     QLineEdit*      m_idEdit;
     QPlainTextEdit* m_csrEdit;
     QLabel*         m_statusLabel;
-    QPlainTextEdit* m_resultEdit;
+    QTableWidget*   m_resultTable;
     QPushButton*    m_verifyButton;
     QPushButton*    m_clearButton;
 };

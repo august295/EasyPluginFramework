@@ -86,6 +86,7 @@ void PluginSm2Pkcs7Verify::verifySignature()
     request.signatureBase64 = m_verifyWidget->signatureData().toStdString();
     request.originalData = m_verifyWidget->originalData().toStdString();
     request.userId = m_verifyWidget->userId().toStdString();
+    request.hasEmbeddedOriginal = m_verifyWidget->hasEmbeddedOriginal();
 
     const core::Sm2Pkcs7VerifyResult result = m_verifyService.verify(request);
     m_verifyWidget->showResult(result);

@@ -101,6 +101,48 @@ std::string asn1StringToText(const easy_asn1_string_st& value)
     return bytesToHex(value.value, value.length);
 }
 
+std::string extractRawContent(const uint8_t* data, const std::size_t length)
+{
+    if (data == nullptr || length == 0U)
+    {
+        return "";
+    }
+
+    const std::size_t prefixLength = data[0] == 0U ? 1U : 0U;
+    const uint8_t*    textData = data + prefixLength;
+    const std::size_t textLength = length - prefixLength;
+    if (textLength == 0U)
+    {
+        return "";
+    }
+
+    return std::string(reinterpret_cast<const char*>(textData), textLength);
+}
+
+std::string rawContentToDisplayText(const std::string& rawContent)
+{
+    if (rawContent.empty())
+    {
+        return "";
+    }
+
+    bool printable = true;
+    for (const unsigned char ch : rawContent)
+    {
+        if (!std::isprint(ch) && !std::isspace(ch))
+        {
+            printable = false;
+            break;
+        }
+    }
+
+    if (printable)
+    {
+        return rawContent;
+    }
+    return bytesToHex(reinterpret_cast<const uint8_t*>(rawContent.data()), rawContent.size());
+}
+
 std::string formatName(const Name& name)
 {
     std::ostringstream stream;
@@ -131,6 +173,22 @@ easy_asn1_tree_st* getTreeItem(easy_asn1_tree_st* node, const int index)
     return node == nullptr ? nullptr : easy_asn1_get_tree_item(node, index);
 }
 
+easy_asn1_tree_st* findEmbeddedContentValueTree(easy_asn1_tree_st* contentInfoTree)
+{
+    easy_asn1_tree_st* explicitContentTree = getTreeItem(contentInfoTree, 1);
+    if (explicitContentTree == nullptr)
+    {
+        return nullptr;
+    }
+
+    easy_asn1_tree_st* current = explicitContentTree;
+    while (current != nullptr && current->first_child != nullptr)
+    {
+        current = current->first_child;
+    }
+    return current;
+}
+
 core::Sm2Pkcs7VerifyResult makeError(const core::Sm2Pkcs7VerifyError error, const std::string& message)
 {
     core::Sm2Pkcs7VerifyResult result = {};
@@ -149,7 +207,7 @@ Sm2Pkcs7VerifyResult Sm2Pkcs7VerifyService::verify(const Sm2Pkcs7VerifyRequest& 
     {
         return makeError(Sm2Pkcs7VerifyError::Validation, "签名数据不能为空");
     }
-    if (request.originalData.empty())
+    if (!request.hasEmbeddedOriginal && request.originalData.empty())
     {
         return makeError(Sm2Pkcs7VerifyError::Validation, "原文数据不能为空");
     }
@@ -181,6 +239,7 @@ Sm2Pkcs7VerifyResult Sm2Pkcs7VerifyService::verify(const Sm2Pkcs7VerifyRequest& 
 
     easy_asn1_tree_st* contentTree = getTreeItem(rawTree, 1);
     easy_asn1_tree_st* signedDataTree = getTreeItem(contentTree, 0);
+    easy_asn1_tree_st* contentInfoTree = getTreeItem(signedDataTree, 2);
     easy_asn1_tree_st* signerInfosTree = getTreeItem(signedDataTree, 4);
     easy_asn1_tree_st* signerInfoTree = getTreeItem(signerInfosTree, 0);
     easy_asn1_tree_st* signatureTree = getTreeItem(signerInfoTree, 4);
@@ -190,9 +249,10 @@ Sm2Pkcs7VerifyResult Sm2Pkcs7VerifyService::verify(const Sm2Pkcs7VerifyRequest& 
     easy_asn1_tree_st* certTree = getTreeItem(signedDataTree, 3);
 
     if (contentTree == nullptr || signedDataTree == nullptr || signerInfosTree == nullptr || signerInfoTree == nullptr ||
-        signatureTree == nullptr || signatureSequenceTree == nullptr || rTree == nullptr || sTree == nullptr || certTree == nullptr)
+        contentInfoTree == nullptr || signatureTree == nullptr || signatureSequenceTree == nullptr || rTree == nullptr || sTree == nullptr ||
+        certTree == nullptr)
     {
-        return makeError(Sm2Pkcs7VerifyError::Pkcs7Structure, "PKCS7 结构不符合预期，无法定位签名值或签名证书");
+        return makeError(Sm2Pkcs7VerifyError::Pkcs7Structure, "PKCS7 结构不符合预期，无法定位原文、签名值或签名证书");
     }
 
     const easy_asn1_string_st rValue = rTree->value;
@@ -234,9 +294,28 @@ Sm2Pkcs7VerifyResult Sm2Pkcs7VerifyService::verify(const Sm2Pkcs7VerifyRequest& 
     result.parsedSignature = true;
     result.parsedPublicKey = true;
 
+    std::string verifyOriginalData = request.originalData;
+    if (request.hasEmbeddedOriginal)
+    {
+        easy_asn1_tree_st* embeddedContentTree = findEmbeddedContentValueTree(contentInfoTree);
+        if (embeddedContentTree == nullptr || embeddedContentTree->value.value == nullptr)
+        {
+            return makeError(Sm2Pkcs7VerifyError::Pkcs7Structure, "PKCS7 中未找到携带的原文数据");
+        }
+
+        verifyOriginalData = extractRawContent(embeddedContentTree->value.value, embeddedContentTree->value.length);
+        if (verifyOriginalData.empty())
+        {
+            return makeError(Sm2Pkcs7VerifyError::Pkcs7Structure, "PKCS7 中携带的原文数据为空");
+        }
+
+        result.embeddedOriginalText = rawContentToDisplayText(verifyOriginalData);
+        result.parsedEmbeddedOriginal = true;
+    }
+
     const int verifyRet = sm2_verify(
-        reinterpret_cast<const uint8_t*>(request.originalData.data()),
-        request.originalData.size(),
+        reinterpret_cast<const uint8_t*>(verifyOriginalData.data()),
+        verifyOriginalData.size(),
         reinterpret_cast<const uint8_t*>(request.userId.data()),
         request.userId.size(),
         &keyHolder.key,
@@ -252,7 +331,8 @@ Sm2Pkcs7VerifyResult Sm2Pkcs7VerifyService::verify(const Sm2Pkcs7VerifyRequest& 
     }
 
     result.error = Sm2Pkcs7VerifyError::VerifyFailed;
-    result.message = "PKCS7 验签失败，请检查原文数据或 SM2 ID 是否匹配";
+    result.message = request.hasEmbeddedOriginal ? "PKCS7 验签失败，请检查签名数据中携带的原文或 SM2 ID 是否匹配"
+                                                 : "PKCS7 验签失败，请检查原文数据或 SM2 ID 是否匹配";
     return result;
 }
 }

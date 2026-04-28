@@ -23,6 +23,7 @@ struct Sm2Pkcs7VerifyRequest
     std::string signatureBase64;
     std::string originalData;
     std::string userId;
+    bool        hasEmbeddedOriginal = false;
 };
 
 struct Sm2Pkcs7VerifyResult
@@ -35,9 +36,11 @@ struct Sm2Pkcs7VerifyResult
     std::string           publicKeyHex;
     std::string           signatureRHex;
     std::string           signatureSHex;
+    std::string           embeddedOriginalText;
     std::size_t           decodedSignatureBytes = 0U;
     bool                  parsedSignature = false;
     bool                  parsedPublicKey = false;
+    bool                  parsedEmbeddedOriginal = false;
 };
 }
 
