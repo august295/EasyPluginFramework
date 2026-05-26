@@ -9,5 +9,6 @@
         <PluginSm2Pkcs7Verify load="true" />
         <PluginSm2CsrVerify load="true" />
         <PluginP7bCertificateChain load="true" />
+        <PluginCertificateChainParser load="true" />
 	</Test>
 </Plugins>
