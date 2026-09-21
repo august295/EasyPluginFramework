@@ -7,12 +7,20 @@ if(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
             set(VCPKG_ROOT "C:/dev/vcpkg")
         endif()
     endif()
-
-    # 设置工具链文件
-    set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(VCPKG_TARGET_TRIPLET "x86-windows")
+    else()
+        set(VCPKG_TARGET_TRIPLET "x64-windows")
+    endif()
 endif()
-message(STATUS "VCPKG_ROOT: ${VCPKG_ROOT}")
-message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+# 设置工具链文件
+set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+# 使用清单下载
+set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+message(STATUS "VCPKG_ROOT:             ${VCPKG_ROOT}")
+message(STATUS "CMAKE_TOOLCHAIN_FILE:   ${CMAKE_TOOLCHAIN_FILE}")
+message(STATUS "VCPKG_MANIFEST_DIR:     ${VCPKG_MANIFEST_DIR}")
+message(STATUS "VCPKG_TARGET_TRIPLET:   ${VCPKG_TARGET_TRIPLET}")
 
 ################################################################################
 # 3RDPARTY
