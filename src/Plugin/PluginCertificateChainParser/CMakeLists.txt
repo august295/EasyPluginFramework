@@ -12,4 +12,3 @@ CreateTarget(${ProjectName} "Dll" "Plugin")
 target_include_directories(${ProjectName} PRIVATE ${ROOT_DIR}/3rdparty/endecode/include)
 
 target_link_libraries(${ProjectName} PRIVATE endecode)
-target_link_libraries(${ProjectName} PRIVATE PkgConfig::gmp)

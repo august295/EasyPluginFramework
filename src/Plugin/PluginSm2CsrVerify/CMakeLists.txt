@@ -14,4 +14,3 @@ target_include_directories(${ProjectName} PRIVATE ${ROOT_DIR}/3rdparty/endecode/
 
 # 链接库
 target_link_libraries(${ProjectName} PRIVATE endecode)
-target_link_libraries(${ProjectName} PRIVATE PkgConfig::gmp)

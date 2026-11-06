@@ -5,7 +5,6 @@
 
 # vs remote
 out/
-CMakePresets.json
 CMakeSettings.json
 CMakeUserPresets.json
 
